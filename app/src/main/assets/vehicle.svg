@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="470" height="705" viewBox="0 0 470 705">
+<defs>
+ <linearGradient id="metal" x2="1" y2=".25"><stop stop-color="#080e15"/><stop offset=".22" stop-color="#27323a"/><stop offset=".52" stop-color="#52545a"/><stop offset=".8" stop-color="#20232c"/><stop offset="1" stop-color="#050a0c"/></linearGradient>
+ <linearGradient id="seat" x2=".9" y2="1"><stop stop-color="#8e3346"/><stop offset=".4" stop-color="#61192b"/><stop offset="1" stop-color="#270c17"/></linearGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="10"/></filter>
+</defs>
+<ellipse cx="235" cy="352" rx="207" ry="343" fill="#000" opacity=".18" filter="url(#shadow)"/>
+<rect x="38" y="160" width="45" height="92" rx="18" fill="#101317"/><rect x="385" y="160" width="45" height="92" rx="18" fill="#101317"/>
+<rect x="38" y="458" width="45" height="92" rx="18" fill="#101317"/><rect x="385" y="458" width="45" height="92" rx="18" fill="#101317"/>
+<path d="M140 16Q235 -2 330 16Q414 50 415 156L426 565Q421 666 325 688Q235 713 145 688Q47 658 44 558L55 156Q60 50 140 16Z" fill="url(#metal)" stroke="#050b10" stroke-width="8"/>
+<path d="M131 58Q235 38 339 58L365 141H105Z" fill="#0c161e" stroke="#a6abb0" stroke-width="4"/>
+<path d="M96 160Q235 135 375 160L389 551Q330 631 235 635Q137 631 81 551Z" fill="#10151b" stroke="#676a70" stroke-width="8"/>
+<path d="M105 158Q232 139 365 158L372 558Q311 620 235 620Q154 620 98 558Z" fill="#161920" stroke="#343c47" stroke-width="5"/>
+<g fill="url(#seat)" stroke="#ac6472" stroke-width="3">
+  <rect x="117" y="190" width="97" height="136" rx="31"/>
+  <rect x="255" y="190" width="97" height="136" rx="31"/>
+  <rect x="117" y="397" width="97" height="137" rx="30"/>
+  <rect x="255" y="397" width="97" height="137" rx="30"/>
+</g>
+<g fill="none" stroke="#d3888f" opacity=".38" stroke-width="3">
+ <path d="M128 242H202M128 283H202M265 242H339M265 283H339M128 449H202M128 492H202M265 449H339M265 492H339"/>
+</g>
+<path d="M222 177H248L250 576H220Z" fill="#090b0e" stroke="#454850" stroke-width="3"/>
+<rect x="226" y="322" width="18" height="61" rx="7" fill="#3a3e47"/>
+<path d="M102 557Q235 598 368 557L351 631Q235 659 119 631Z" fill="#090e13" stroke="#8a8d91" stroke-width="3"/>
+<path d="M115 640Q235 671 355 640L341 671Q235 689 129 671Z" fill="#16191f"/>
+<path d="M85 112L105 87L128 111L112 141L79 137Z" fill="#e9eef4" opacity=".8"/>
+<path d="M383 112L365 87L342 111L359 141L391 137Z" fill="#e9eef4" opacity=".8"/>
+<path d="M86 592L122 610L129 646L78 627Z" fill="#df3344"/><path d="M385 592L348 610L342 646L394 627Z" fill="#df3344"/>
+</svg>
