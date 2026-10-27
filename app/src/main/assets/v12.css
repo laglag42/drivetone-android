@@ -188,3 +188,73 @@ body.v12-design #v8-ui{pointer-events:none}
 @media(prefers-reduced-motion:reduce){
  body.v12-design *,body.v12-design *::before,body.v12-design *::after{transition-duration:.01ms!important;animation-duration:.01ms!important;scroll-behavior:auto!important}
 }
+
+
+/* V12 quality pass: inherited geometry, narrow Android screens and interaction states */
+body.v12-design{overflow-x:hidden}
+body.v12-design #app{width:100%;overflow-x:clip}
+body.v12-design .app-body,body.v12-design .page,body.v12-design .white-card,body.v12-design .v7-extras,
+body.v12-design .v7-head,body.v12-design .v7-now,body.v12-design .v8-panel,body.v12-design #v10-collections,body.v12-design .v11-panel{min-width:0;max-width:100%}
+body.v12-design .v7-extras,body.v12-design .v6-panel{background:#101a27;border:1px solid #29405a;color:#e7f3ff;box-shadow:0 8px 24px #0003}
+body.v12-design .v6-panel p,body.v12-design .v7-extras p{color:#9daeca}
+body.v12-design .v6-chip,body.v12-design .v7-extras button{background:#18273b;color:#d5e8fc;border:1px solid #34536f}
+body.v12-design .v7-now,body.v12-design .v7-route-state,body.v12-design .v6-indicator{background:#101e30;color:#e3f2ff;border:1px solid #2a4260}
+body.v12-design .v6-field,body.v12-design .v6-toggle-row{color:#e3efff}
+body.v12-design .v6-field select,body.v12-design .v6-field input,body.v12-design .v6-carview{background:#132338;color:#e7f4ff;border-color:#2e4f72}
+body.v12-design #settings input:not([type=checkbox]):not([type=range]),body.v12-design #settings textarea,body.v12-design #settings select{background:#111d2b;border-color:#2b4059;color:#eff7ff;max-width:100%}
+body.v12-design .file-row,body.v12-design .source-card{min-width:0}
+body.v12-design .grow{min-width:0;overflow:hidden}
+body.v12-design .grow b,body.v12-design .grow small{display:block;overflow-wrap:anywhere}
+body.v12-design .eq-scroll{overscroll-behavior-x:contain;touch-action:pan-x;max-width:100%}
+body.v12-design .eq-bands{margin-left:0;margin-right:0}
+body.v12-design .eq-rail{background:#132235}
+body.v12-design .eq-rail:before,body.v12-design .eq-rail:after{background:#39516d}
+body.v12-design .v12-eq-curve{flex:0 0 auto}
+body.v12-design .v12-cabin-presets{max-width:100%}
+body.v12-design .car-shell{height:auto!important;min-height:0;aspect-ratio:1.63;display:block}
+body.v12-design .car-shell::before,body.v12-design .car-shell::after{display:none}
+body.v12-design .car-image{margin:0;max-width:none;width:94%;height:94%;inset:3%;display:block;object-fit:contain}
+body.v12-design .speaker{width:32px;height:32px;min-height:32px;padding:0}
+body.v12-design .sp-fl{left:35%;top:32%}body.v12-design .sp-fr{left:35%;top:68%}
+body.v12-design .sp-rl{left:66%;top:32%}body.v12-design .sp-rr{left:66%;top:68%}
+body.v12-design .volume-action{justify-content:space-between;gap:0;max-width:278px;margin:0 auto}
+body.v12-design .dial-stage{max-width:100%;width:100%}
+body.v12-design .nav button.active .nav-ico{background:linear-gradient(145deg,#173e66,#0d2443);color:#56b7ff;border:1px solid #2265a6;box-shadow:0 0 13px #208cf83d}
+body.v12-design #home .player-card{position:relative}
+body.v12-design .v12-player-open{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;margin:12px 0 0;background:#132943;border:1px solid #2b78b6;color:#9fddff;border-radius:12px;font-size:11px;font-weight:750}
+body.v12-design .v12-player-open:active{background:#16558c}
+body.v12-design .v12-shortcut:active{transform:translateY(1px);background:#163c65}
+body.v12-design #v11-modal{height:100dvh;max-height:100dvh;box-sizing:border-box;overscroll-behavior:contain}
+body.v12-design #v11-modal #v11-art{width:min(70vw,300px,31dvh);min-width:160px;flex:0 1 auto}
+body.v12-design #v11-modal .v11-buttons{gap:15px}
+body.v12-design #v11-modal .v11-buttons button{min-width:56px;width:60px;min-height:52px}
+body.v12-design #v11-modal .v11-note{font-size:10px;line-height:1.35;max-width:310px}
+body.v12-design #v11-modal #v11-name{font-size:clamp(17px,5.6vw,25px);margin:0}
+body.v12-design #v11-modal .v11-top{flex:0 0 auto}
+body.v12-design #v11-modal #v11-wave{flex:0 0 40px}
+body.v12-design .v8-pad{max-width:100%}
+body.v12-design #v8-mic-start,body.v12-design #v8-mic-stop{min-width:100px}
+body.v12-design #dt5-search{max-width:100%;min-width:0}
+body.v12-design .dt5-search{display:flex;gap:7px;max-width:100%}
+body.v12-design .dt5-search input{flex:1;min-width:0}
+body.v12-design .v10-create{max-width:100%}
+body.v12-design .v10-create input{flex:1;min-width:0}
+body.v12-design #v10-items .v10-track span{min-width:0}
+body.v12-design .v11-q span{min-width:0}
+body.v12-design .v11-panel select{max-width:100%}
+@media(max-width:345px){
+ body.v12-design .app-body{padding-left:11px;padding-right:11px}
+ body.v12-design .dial-stage{transform:scale(.88);transform-origin:center;height:244px}
+ body.v12-design .v12-shortcuts{gap:5px}
+ body.v12-design .v12-shortcut{min-height:76px;padding:7px 0}
+ body.v12-design .v12-shortcut svg{height:20px;width:20px}
+ body.v12-design .v12-shortcut span{font-size:9px}
+ body.v12-design .nav{padding-left:4px;padding-right:4px}
+ body.v12-design .nav button{min-width:0;flex:1}
+ body.v12-design .nav-label{font-size:9px}
+}
+@media(max-height:620px){
+ body.v12-design #v11-modal{gap:8px}
+ body.v12-design #v11-modal #v11-art{width:min(52vw,185px,24dvh);min-width:110px}
+ body.v12-design #v11-modal #v11-wave{flex-basis:25px;height:25px}
+}
