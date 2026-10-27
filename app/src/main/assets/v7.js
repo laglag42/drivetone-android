@@ -4,7 +4,7 @@ if(!I)return;
 const native=()=>!!window.AndroidBridge;
 const invoke=(method,...args)=>I.callNative(method,...args);
 const panel=document.createElement("section");panel.id="v7-library";
-panel.innerHTML='<div class="v7-head"><div><span>DRIVETONE / NATIVE</span><h2>Kalıcı Müzik Kütüphanesi</h2><p>Seçtiğin dosyalar tekrar açılışta kaybolmaz. Android Media3 üzerinden ekran kapalıyken dinleyebilirsin.</p></div><span class="v7-pill" id="v7-status">Bağlanıyor…</span></div><div class="v7-controls"><button id="v7-refresh">↻ Güncelle</button><button id="v7-clear">Tümünü sil</button></div><div class="v7-now"><div class="v7-now-icon">♫</div><div><span>ŞİMDİ ÇALAN</span><strong id="v7-title">Henüz parça seçilmedi</strong><small id="v7-time">--:-- / --:--</small></div></div><input type="range" id="v7-seek" min="0" max="1000" value="0" aria-label="Parçada ilerle"><div class="v7-player"><button id="v7-prev" aria-label="Önceki">⏮</button><button id="v7-toggle" aria-label="Oynat veya duraklat">▶</button><button id="v7-next" aria-label="Sonraki">⏭</button></div><div class="v7-list" id="v7-list"><p>Müzik kütüphanesi yükleniyor…</p></div>';
+panel.innerHTML='<div class="v7-head"><div><span>DRIVETONE / NATIVE</span><h2>Kalıcı Müzik Kütüphanesi</h2><p>Seçtiğin dosyalar tekrar açılışta kaybolmaz. Android Media3 üzerinden ekran kapalıyken dinleyebilirsin. 28 bant EQ aşağıdaki yerel müzik oynatıcısında çalışır.</p></div><span class="v7-pill" id="v7-status">Bağlanıyor…</span></div><div class="v7-controls"><button id="v7-refresh">↻ Güncelle</button><button id="v7-clear">Tümünü sil</button></div><div class="v7-now"><div class="v7-now-icon">♫</div><div><span>ŞİMDİ ÇALAN</span><strong id="v7-title">Henüz parça seçilmedi</strong><small id="v7-time">--:-- / --:--</small></div></div><input type="range" id="v7-seek" min="0" max="1000" value="0" aria-label="Parçada ilerle"><div class="v7-player"><button id="v7-prev" aria-label="Önceki">⏮</button><button id="v7-toggle" aria-label="Oynat veya duraklat">▶</button><button id="v7-next" aria-label="Sonraki">⏭</button></div><div class="v7-list" id="v7-list"><p>Müzik kütüphanesi yükleniyor…</p></div>';
 const sources=$("#sources"),body=sources?.querySelector(".page-content")||sources;
 if(body)body.prepend(panel);
 document.head.insertAdjacentHTML("beforeend",'<style>'+
@@ -15,7 +15,7 @@ let tracks=[],playing=false,position=0,duration=0,activeIndex=-1;
 function show(){
  const list=$("#v7-list");if(!list)return;
  list.innerHTML=tracks.length?tracks.map((t,i)=>'<div class="v7-item '+(activeIndex===i?"is-active":"")+'"><button class="v7-open" data-v7-play="'+i+'">'+(activeIndex===i?"♪ ":"♫ ")+I.escapeHtml(t.title)+'</button><button class="v7-remove" data-v7-delete="'+i+'" aria-label="Listeden kaldır">×</button></div>').join(""):'<div class="v7-empty"><p>Henüz kalıcı şarkı yok.</p><p>Alt taraftaki “Müzik ekle” ile dosyalarını seç.</p></div>';
- list.querySelectorAll("[data-v7-play]").forEach(b=>b.onclick=()=>invoke("nativePlay",Number(b.dataset.v7Play)));
+ list.querySelectorAll("[data-v7-play]").forEach(b=>b.onclick=()=>{I.audio.pause();invoke("nativePlay",Number(b.dataset.v7Play))});
  list.querySelectorAll("[data-v7-delete]").forEach(b=>b.onclick=()=>{invoke("nativeRemove",Number(b.dataset.v7Delete));refreshLibrary()});
  $("#v7-status").textContent=native()?tracks.length+" parça kayıtlı":"Android uygulamasında aç";
  $("#v7-title").textContent=activeIndex>=0?tracks[activeIndex]?.title||"Parça":"Henüz parça seçilmedi";
@@ -27,10 +27,13 @@ function refreshLibrary(){if(!native()){tracks=[];show();return}try{const x=JSON
 function poll(){if(native()){try{const x=JSON.parse(invoke("getNativePlayback")||"{}");if(x.ready){activeIndex=Number.isInteger(x.index)?x.index:-1;position=x.position;duration=x.duration;playing=!!x.playing}else{activeIndex=-1;playing=false}show()}catch{}}}
 $("#v7-refresh").onclick=refreshLibrary;
 $("#v7-clear").onclick=()=>{if(confirm("Kalıcı kütüphaneden tüm müzikleri kaldırmak istiyor musun? Dosyalar telefonundan silinmez.")){invoke("nativeClear");refreshLibrary()}};
-$("#v7-toggle").onclick=()=>invoke("nativeToggle");
+$("#v7-toggle").onclick=()=>{I.audio.pause();invoke("nativeToggle")};
 $("#v7-prev").onclick=()=>invoke("nativePrevious");
 $("#v7-next").onclick=()=>invoke("nativeNext");
 $("#v7-seek").onchange=e=>{if(duration>0)invoke("nativeSeek",Math.round(Number(e.target.value)/1000*duration))};
+I.audio.addEventListener("play",()=>{if(native())invoke("nativePause")});
+const dockVersion=document.querySelector(".v6-dock strong");if(dockVersion)dockVersion.textContent="7";
+const footerVersion=$("#dt5-version");if(footerVersion)footerVersion.textContent="DRIVETONE V7 · STUDIO";
 window.DTV7={refreshLibrary,nativeReady:()=>{$("#v7-status").textContent="Hazır";refreshLibrary()},nativeError:()=>{$("#v7-status").textContent="Bağlantı başarısız"}};
 refreshLibrary();setInterval(poll,1250);
 })();
