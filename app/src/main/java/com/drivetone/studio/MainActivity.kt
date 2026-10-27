@@ -11,10 +11,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
-import android.media.MediaMetadata
-import android.media.session.MediaController
-import android.media.session.MediaSessionManager
-import android.media.session.PlaybackState
 import android.net.Uri
 import android.os.Bundle
 import androidx.media3.session.MediaController as NativeController
@@ -56,7 +52,6 @@ class MainActivity : Activity() {
     private var pendingMicrophone: PermissionRequest? = null
     private val handler = Handler(Looper.getMainLooper())
     private var previousVolume = -1
-    private var previousMedia = ""
     private var previousDevice = ""
     @Volatile private var activeTab = "home"
     private val monitor = object : Runnable {
@@ -68,11 +63,6 @@ class MainActivity : Activity() {
                 if (v != previousVolume) {
                     previousVolume = v
                     executeJs("window.DRIVETONE&&window.DRIVETONE.onVolumeChanged($v)")
-                }
-                val m = readMedia()
-                if (m != previousMedia) {
-                    previousMedia = m
-                    executeJs("window.DRIVETONE&&window.DRIVETONE.onMediaUpdate(${if (m.isEmpty()) "{}" else m})")
                 }
                 val b = getBluetoothDevice()
                 if (b != previousDevice) {
@@ -212,33 +202,7 @@ class MainActivity : Activity() {
             .firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP || it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
             ?.productName?.toString().orEmpty()
     } catch (_: Exception) { "" }
-    private fun mediaControllers(): List<MediaController> = try {
-        val mgr = getSystemService(MEDIA_SESSION_SERVICE) as MediaSessionManager
-        mgr.getActiveSessions(ComponentName(this, MediaAccessListener::class.java))
-    } catch (_: Exception) { emptyList() }
-    private fun mediaController(): MediaController? {
-        val list = mediaControllers()
-        return list.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING } ?: list.firstOrNull()
-    }
-    private fun readMedia(): String {
-        val ctrl = mediaController() ?: return ""
-        val md = ctrl.metadata ?: return ""
-        val title = md.getString(MediaMetadata.METADATA_KEY_TITLE)?.takeIf { it.isNotBlank() } ?: return ""
-        return JSONObject().apply {
-            put("title", title)
-            put("artist", md.getString(MediaMetadata.METADATA_KEY_ARTIST).orEmpty())
-            put("packageName", ctrl.packageName)
-            put("playing", ctrl.playbackState?.state == PlaybackState.STATE_PLAYING)
-        }.toString()
-    }
-    private fun control(action: String) {
-        val ctrl = mediaController() ?: return
-        when (action) {
-            "toggle" -> if (ctrl.playbackState?.state == PlaybackState.STATE_PLAYING) ctrl.transportControls.pause() else ctrl.transportControls.play()
-            "next" -> ctrl.transportControls.skipToNext()
-            "previous" -> ctrl.transportControls.skipToPrevious()
-        }
-    }
+    // Sensitive notification listener and cross-app media tracking intentionally removed.
     private fun openSource(name: String) {
         val pkg = when (name) {
             "spotify" -> "com.spotify.music"
@@ -570,24 +534,21 @@ class MainActivity : Activity() {
                 audio.setStreamVolume(AudioManager.STREAM_MUSIC, (mx * percent.coerceIn(0, 100) / 100f).toInt(), 0)
             } catch (_: Exception) {}
         }
-        @JavascriptInterface fun getCurrentMedia(): String = readMedia()
+        @JavascriptInterface fun getCurrentMedia(): String = ""
         @JavascriptInterface fun getBluetoothOutput(): String = getBluetoothDevice()
-        @JavascriptInterface fun notificationPermissionEnabled(): Boolean = try {
-            Settings.Secure.getString(contentResolver, "enabled_notification_listeners").orEmpty().contains(packageName)
-        } catch (_: Exception) { false }
+        @JavascriptInterface fun notificationPermissionEnabled(): Boolean = false
         @JavascriptInterface fun setActiveTab(name: String) {
             if (name in setOf("home", "eq", "cabin", "sources", "settings")) activeTab = name
         }
-        @JavascriptInterface fun toggleMedia() = control("toggle")
-        @JavascriptInterface fun nextMedia() = control("next")
-        @JavascriptInterface fun previousMedia() = control("previous")
+        @JavascriptInterface fun toggleMedia() {
+            runOnUiThread { nativeController?.let { if (it.isPlaying) it.pause() else it.play() } }
+        }
+        @JavascriptInterface fun nextMedia() { runOnUiThread { nativeController?.seekToNextMediaItem() } }
+        @JavascriptInterface fun previousMedia() { runOnUiThread { nativeController?.seekToPreviousMediaItem() } }
         @JavascriptInterface fun openMusicApp(name: String): Boolean {
             if (name !in setOf("spotify", "ytmusic", "youtube")) return false
             runOnUiThread { openSource(name) }
             return true
-        }
-        @JavascriptInterface fun openNotificationAccess() = runOnUiThread {
-            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
         @JavascriptInterface fun openBluetoothSettings() = runOnUiThread {
             startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
