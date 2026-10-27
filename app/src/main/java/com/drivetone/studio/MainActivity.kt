@@ -92,7 +92,11 @@ class MainActivity : Activity() {
         val token = SessionToken(this, ComponentName(this, PlaybackService::class.java))
         nativeFuture = NativeController.Builder(this, token).buildAsync()
         nativeFuture?.addListener({
-            try { nativeController = nativeFuture?.get(); executeJs("window.DTV7&&window.DTV7.nativeReady()") }
+            try {
+                nativeController = nativeFuture?.get()
+                restorePlaybackOptions()
+                executeJs("window.DTV7&&window.DTV7.nativeReady()")
+            }
             catch (_: Exception) { executeJs("window.DTV7&&window.DTV7.nativeError()") }
         }, MoreExecutors.directExecutor())
         volumeControlStream = AudioManager.STREAM_MUSIC
@@ -244,6 +248,14 @@ class MainActivity : Activity() {
             startActivity(intent)
         } catch (_: Exception) {}
     }
+    private fun restorePlaybackOptions() {
+        val ctrl = nativeController ?: return
+        val prefs = getSharedPreferences("dt_v9_playback", MODE_PRIVATE)
+        ctrl.shuffleModeEnabled = prefs.getBoolean("shuffle", false)
+        ctrl.repeatMode = prefs.getInt("repeat", 0).coerceIn(0, 2)
+        ctrl.setPlaybackSpeed(prefs.getFloat("speed", 1f).coerceIn(0.75f, 1.5f))
+    }
+
     private fun getNativePlaybackSnapshot(): String {
             val ctrl = nativeController ?: return "{\"ready\":false}"
             return JSONObject().apply {
@@ -251,6 +263,10 @@ class MainActivity : Activity() {
                 put("position", ctrl.currentPosition)
                 put("duration", ctrl.duration)
                 put("index", if (ctrl.currentMediaItem == null) -1 else ctrl.currentMediaItemIndex)
+                put("uri", ctrl.currentMediaItem?.localConfiguration?.uri?.toString().orEmpty())
+                put("shuffle", ctrl.shuffleModeEnabled)
+                put("repeat", ctrl.repeatMode)
+                put("speed", ctrl.playbackParameters.speed)
                 put("title", ctrl.mediaMetadata.title?.toString().orEmpty())
             }.toString()
         }
@@ -345,6 +361,13 @@ class MainActivity : Activity() {
                 ctrl.setMediaItems(items,index,0)
                 ctrl.prepare();ctrl.play()
             }
+        }
+        @JavascriptInterface fun nativePlaybackOptions(shuffle: Boolean, repeat: Int, speed: Float): Boolean {
+            if (repeat !in 0..2 || !speed.isFinite() || speed < .75f || speed > 1.5f) return false
+            getSharedPreferences("dt_v9_playback", MODE_PRIVATE).edit()
+                .putBoolean("shuffle",shuffle).putInt("repeat",repeat).putFloat("speed",speed).apply()
+            runOnUiThread { restorePlaybackOptions() }
+            return true
         }
         @JavascriptInterface fun nativePause() { runOnUiThread { nativeController?.pause() } }
         @JavascriptInterface fun nativeToggle() { runOnUiThread {
