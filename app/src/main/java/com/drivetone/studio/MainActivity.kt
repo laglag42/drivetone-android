@@ -77,9 +77,9 @@ class MainActivity : Activity() {
     @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.statusBarColor = Color.rgb(247,247,245)
-        window.navigationBarColor = Color.rgb(250,250,249)
-        window.decorView.systemUiVisibility = android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        window.statusBarColor = Color.rgb(8,13,20)
+        window.navigationBarColor = Color.rgb(8,13,20)
+        window.decorView.systemUiVisibility = 0
         audio = getSystemService(AUDIO_SERVICE) as AudioManager
         nativeLibrary = NativeMusicLibrary(this)
         val token = SessionToken(this, ComponentName(this, PlaybackService::class.java))
