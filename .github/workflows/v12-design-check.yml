@@ -30,6 +30,22 @@ jobs:
           name: DRIVETONE-V12-Design-Validation
           path: v12-browser-results/
           if-no-files-found: ignore
+      - name: Set up Java 17 for native Android compile check
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android compilation platform (no APK)
+        run: |
+          SDK_MANAGER="$(find /usr/local/lib/android/sdk/cmdline-tools -type f -name sdkmanager | head -n 1)"
+          test -x "$SDK_MANAGER"
+          yes | "$SDK_MANAGER" --licenses >/dev/null || true
+          "$SDK_MANAGER" "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Compile Android Kotlin code only, do not package an APK
+        run: gradle --no-daemon :app:compileDebugKotlin
       - name: Verify notification-listener safety is unchanged
         run: |
           python3 - <<'PY'
