@@ -72,7 +72,6 @@ class PlaybackService : MediaSessionService() {
                 prefs.edit().putString("bands",a.toString()).putBoolean("enabled",active).apply()
                 applyBands()
             }else report("error",0,"Gecersiz EQ verisi")
-            stopSelfResult(startId)
             return START_NOT_STICKY
         }
         return super.onStartCommand(intent,flags,startId)
