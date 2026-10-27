@@ -52,4 +52,6 @@ q("#v10-play").onclick=()=>play(false);q("#v10-shuffle").onclick=()=>play(true);
 function poll(){if(!native()||document.hidden)return;try{const p=JSON.parse(call("getNativePlayback")||"{}");if(!p.playing||!p.uri||p.uri===lastCurrent)return;lastCurrent=p.uri;if(tracks.some(t=>t.uri===p.uri)){stored.recent=[p.uri,...stored.recent.filter(x=>x!==p.uri)].slice(0,MAX_ITEMS);persist();if(view==="recent")draw()}}catch{}}
 window.DTV10={refresh:()=>{sync();draw()},playbackError:()=>I.toast("Android bu listeyi başlatamadı")};
 sync();draw();setInterval(poll,2500);
+const version=document.querySelector("#dt5-version");if(version)version.textContent="DRIVETONE V10 · STUDIO";
+const dock=document.querySelector(".v6-dock strong");if(dock)dock.textContent="10";
 })();
