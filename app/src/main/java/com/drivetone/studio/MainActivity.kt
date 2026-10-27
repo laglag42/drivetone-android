@@ -15,6 +15,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.HapticFeedbackConstants
 import android.provider.MediaStore
 import android.provider.Settings
 import android.webkit.JavascriptInterface
@@ -196,6 +197,7 @@ class MainActivity : Activity() {
                 }
             } catch (_: Exception) { "ERR:storage unavailable" }
         }
+        @JavascriptInterface fun hapticTick() { runOnUiThread { if (::web.isInitialized) web.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) } }
         @JavascriptInterface fun getMediaVolume(): Int = getVolume()
         @JavascriptInterface fun setMediaVolume(percent: Int) {
             try {
