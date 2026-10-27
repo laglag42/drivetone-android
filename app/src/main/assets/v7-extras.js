@@ -46,12 +46,24 @@ by("v7-backup-picker")?.addEventListener("change",async e=>{
   const p=JSON.parse(await f.text());
   if(!p||p.type!=="drivetone.backup"||p.version!==1||!p.entries||typeof p.entries!=="object"||Array.isArray(p.entries))throw Error("DRIVETONE yedek dosyası değil");
   if(!confirm("Mevcut ses ve favori ayarların yedekteki değerlerle değişecek. Devam edilsin mi?"))return;
-  for(const k of KEY_NAMES){if(Object.prototype.hasOwnProperty.call(p.entries,k)){
+  const updates={};
+  for(const k of KEY_NAMES){
+    if(!Object.prototype.hasOwnProperty.call(p.entries,k))continue;
     const v=p.entries[k],json=JSON.stringify(v);
     if(!json||json.length>130000)throw Error("Yedek alanı çok büyük");
     if(k==="dt3:settings"&&(!v||typeof v!=="object"||!Array.isArray(v.eq)||v.eq.length!==28||!v.eq.every(n=>typeof n==="number"&&Number.isFinite(n)&&Math.abs(n)<=12)))throw Error("EQ ayarları geçersiz");
-    localStorage.setItem(k,json)
-  }}
+    updates[k]=json;
+  }
+  const originals={};
+  for(const k of Object.keys(updates))originals[k]=localStorage.getItem(k);
+  try{
+    for(const [k,value] of Object.entries(updates))localStorage.setItem(k,value);
+  }catch(err){
+    for(const [k,value] of Object.entries(originals)){
+      try{if(value===null)localStorage.removeItem(k);else localStorage.setItem(k,value)}catch(_){}
+    }
+    throw Error("Ayarlar kaydedilemedi; önceki veriler korunmaya çalışıldı");
+  }
   by("v7-backup-status").textContent="Ayarlar geri yüklendi. Uygulamayı kapatıp yeniden aç.";
  }catch(err){by("v7-backup-status").textContent="Yükleme hatası: "+String(err.message||"geçersiz dosya")}
 });
