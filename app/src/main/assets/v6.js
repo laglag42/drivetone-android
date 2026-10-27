@@ -62,9 +62,9 @@ const localProfile=()=>{const p=conf.profiles.local;if(p){const button=document.
 const openDrive=()=>{by("v6-drive").hidden=false;by("v6-drive-number").textContent=state.volume;by("v6-drive-close").focus()};
 bind("v6-drive-open",openDrive);bind("v6-drive-close",()=>{by("v6-drive").hidden=true;by("v6-drive-open").focus()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!by("v6-drive").hidden)by("v6-drive-close").click()});
-const setVol=v=>{const old=state.volume;const delta=C.clamp(v,0,state.maxVolume);const dial=by("dial");if(dial){const event=null;const b=by("volumeValue");const minus=by("volumeMinus");const plus=by("volumePlus");if(delta>old&&plus)for(let i=old;i<delta;i++)plus.click();else if(delta<old&&minus)for(let i=old;i>delta;i--)minus.click()}by("v6-drive-number").textContent=state.volume};
+const setVol=v=>{const old=state.volume;const delta=C.clamp(v,0,state.maxVolume);const dial=by("dial");if(dial){const event=null;const b=by("volumeValue");const minus=document.querySelector(".volume-action button:first-child");const plus=document.querySelector(".volume-action button:last-child");if(delta>old&&plus)for(let i=old;i<delta;i++)plus.click();else if(delta<old&&minus)for(let i=old;i>delta;i--)minus.click()}by("v6-drive-number").textContent=state.volume};
 bind("v6-drive-minus",()=>setVol(state.volume-4));bind("v6-drive-plus",()=>setVol(state.volume+4));
-bind("v6-drive-prev",()=>by("prevTrack")?.click());bind("v6-drive-next",()=>by("nextTrack")?.click());bind("v6-drive-play",()=>by("playPause")?.click());
+bind("v6-drive-prev",()=>document.querySelector(".player-controls button:first-child")?.click());bind("v6-drive-next",()=>document.querySelector(".player-controls button:last-child")?.click());bind("v6-drive-play",()=>document.querySelector(".player-controls .playbtn")?.click());
 bind("v6-drive-natural",()=>{by("v6-drive-close").click();I.tab("eq");document.querySelector('[data-preset="Natural"]')?.click();openDrive()});
 bind("v6-drive-bass",()=>{by("v6-drive-close").click();I.tab("eq");document.querySelector('[data-preset="Bass Plus"]')?.click();openDrive()});
 let toneOsc=null,toneGain=null;function stopTone(){try{toneOsc?.stop()}catch{}toneOsc=null;try{toneGain?.disconnect()}catch{}toneGain=null};
