@@ -48,6 +48,8 @@ class MainActivity : Activity() {
     private var chooser: ValueCallback<Array<Uri>>? = null
     private var fileChooserIsAudio = false
     @Volatile private var playbackSnapshot: String = "{\"ready\":false}"
+    @Volatile private var nativeQueueSnapshot: String = "[]"
+    @Volatile private var fullScreenPlayerV11 = false
     private val fileRequest = 5274
     private val voiceRequest = 5275
     private val microphoneRequest = 5276
@@ -61,6 +63,7 @@ class MainActivity : Activity() {
         override fun run() {
             if (!isFinishing && ::web.isInitialized) {
                 playbackSnapshot = getNativePlaybackSnapshot()
+                updateQueueSnapshot()
                 val v = getVolume()
                 if (v != previousVolume) {
                     previousVolume = v
@@ -95,6 +98,7 @@ class MainActivity : Activity() {
             try {
                 nativeController = nativeFuture?.get()
                 restorePlaybackOptions()
+                updateQueueSnapshot()
                 executeJs("window.DTV7&&window.DTV7.nativeReady()")
             }
             catch (_: Exception) { executeJs("window.DTV7&&window.DTV7.nativeError()") }
@@ -248,6 +252,26 @@ class MainActivity : Activity() {
             startActivity(intent)
         } catch (_: Exception) {}
     }
+    /** All Media3 controller access remains on the Android main thread. */
+    private fun updateQueueSnapshot() {
+        val c = nativeController
+        val out = org.json.JSONArray()
+        if (c != null) {
+            for (i in 0 until minOf(c.mediaItemCount,150)) {
+                val item = c.getMediaItemAt(i)
+                out.put(JSONObject()
+                    .put("index", i)
+                    .put("title", item.mediaMetadata.title?.toString().orEmpty())
+                    .put("uri", item.localConfiguration?.uri?.toString().orEmpty())
+                    .put("current", i == c.currentMediaItemIndex))
+            }
+        }
+        nativeQueueSnapshot = out.toString()
+    }
+    private fun announceQueueChanged() {
+        updateQueueSnapshot()
+        executeJs("window.DTV11&&window.DTV11.queueChanged()")
+    }
     private fun restorePlaybackOptions() {
         val ctrl = nativeController ?: return
         val prefs = getSharedPreferences("dt_v9_playback", MODE_PRIVATE)
@@ -360,6 +384,7 @@ class MainActivity : Activity() {
                     .build() }
                 ctrl.setMediaItems(items,index,0)
                 ctrl.prepare();ctrl.play()
+                announceQueueChanged()
             }
         }
         /**
@@ -396,6 +421,7 @@ class MainActivity : Activity() {
                         controller.setMediaItems(items, 0, 0L)
                         controller.prepare()
                         controller.play()
+                        announceQueueChanged()
                     } catch (_: Exception) {
                         executeJs("window.DTV10&&window.DTV10.playbackError()")
                     }
@@ -421,27 +447,26 @@ class MainActivity : Activity() {
                 .put("normalizeState",p.getString("normalizeState","waiting")).toString()
         }
         @JavascriptInterface fun nativeQueueMove(from:Int, to:Int): Boolean {
-            val c=nativeController ?: return false
-            if(from<0||to<0||from>=c.mediaItemCount||to>=c.mediaItemCount)return false
-            runOnUiThread { try{nativeController?.moveMediaItem(from,to)}catch(_:Exception){} }
+            if (from < 0 || to < 0 || from == to) return false
+            runOnUiThread {
+                val c = nativeController ?: return@runOnUiThread
+                if (from !in 0 until c.mediaItemCount || to !in 0 until c.mediaItemCount) return@runOnUiThread
+                try { c.moveMediaItem(from,to);announceQueueChanged() } catch (_:Exception) {}
+            }
             return true
         }
         @JavascriptInterface fun nativeQueueRemove(index:Int): Boolean {
-            val c=nativeController ?: return false
-            if(index<0||index>=c.mediaItemCount)return false
-            runOnUiThread { try{nativeController?.removeMediaItem(index)}catch(_:Exception){} }
+            if (index < 0) return false
+            runOnUiThread {
+                val c = nativeController ?: return@runOnUiThread
+                if (index !in 0 until c.mediaItemCount) return@runOnUiThread
+                try { c.removeMediaItem(index);announceQueueChanged() } catch (_:Exception) {}
+            }
             return true
         }
-        @JavascriptInterface fun nativeQueueJson():String {
-            val c=nativeController ?: return "[]"
-            val a=org.json.JSONArray()
-            for(i in 0 until minOf(c.mediaItemCount,150)){
-                val t=c.getMediaItemAt(i)
-                a.put(JSONObject().put("index",i).put("title",t.mediaMetadata.title?.toString().orEmpty())
-                    .put("uri",t.localConfiguration?.uri?.toString().orEmpty())
-                    .put("current",i==c.currentMediaItemIndex))
-            }
-            return a.toString()
+        @JavascriptInterface fun nativeQueueJson():String = nativeQueueSnapshot
+        @JavascriptInterface fun setV11Fullscreen(open:Boolean) {
+            fullScreenPlayerV11 = open
         }
         @JavascriptInterface fun nativePlaybackOptions(shuffle: Boolean, repeat: Int, speed: Float): Boolean {
             if (repeat !in 0..2 || !speed.isFinite() || speed < .75f || speed > 1.5f) return false
@@ -472,6 +497,7 @@ class MainActivity : Activity() {
                             }
                         }
                     }
+                    announceQueueChanged()
                     executeJs("window.DTV7&&window.DTV7.refreshLibrary()")
                 }
             }
@@ -481,6 +507,7 @@ class MainActivity : Activity() {
                 nativeController?.stop()
                 nativeController?.clearMediaItems()
                 nativeLibrary.clear()
+                announceQueueChanged()
                 executeJs("window.DTV7&&window.DTV7.refreshLibrary()")
             }
         }
@@ -568,6 +595,11 @@ class MainActivity : Activity() {
     }
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
+        if (fullScreenPlayerV11) {
+            fullScreenPlayerV11 = false
+            executeJs("window.DTV11&&window.DTV11.closePlayer()")
+            return
+        }
         if (activeTab != "home") {
             activeTab = "home"
             executeJs("window.DRIVETONE&&window.DRIVETONE.goTo('home')")
