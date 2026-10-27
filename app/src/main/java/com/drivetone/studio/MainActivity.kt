@@ -1,6 +1,10 @@
 package com.drivetone.studio
 
 import android.app.Activity
+import android.Manifest
+import android.content.pm.PackageManager
+import android.webkit.PermissionRequest
+import android.speech.RecognizerIntent
 import android.content.ComponentName
 import android.content.ContentValues
 import android.content.Intent
@@ -45,6 +49,9 @@ class MainActivity : Activity() {
     private var fileChooserIsAudio = false
     @Volatile private var playbackSnapshot: String = "{\"ready\":false}"
     private val fileRequest = 5274
+    private val voiceRequest = 5275
+    private val microphoneRequest = 5276
+    private var pendingMicrophone: PermissionRequest? = null
     private val handler = Handler(Looper.getMainLooper())
     private var previousVolume = -1
     private var previousMedia = ""
@@ -110,6 +117,23 @@ class MainActivity : Activity() {
             }
         }
         web.webChromeClient = object : WebChromeClient() {
+            override fun onPermissionRequest(request: PermissionRequest?) {
+                if(request==null)return
+                runOnUiThread {
+                    if(request.origin?.host!="appassets.androidplatform.net" ||
+                        !request.resources.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE))request.deny()
+                    else if(checkSelfPermission(Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED)
+                        request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+                    else {
+                        pendingMicrophone?.deny()
+                        pendingMicrophone=request
+                        requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO),microphoneRequest)
+                    }
+                }
+            }
+            override fun onPermissionRequestCanceled(request: PermissionRequest?) {
+                if(pendingMicrophone===request)pendingMicrophone=null
+            }
             override fun onShowFileChooser(view: WebView?, callback: ValueCallback<Array<Uri>>?, params: FileChooserParams?): Boolean {
                 chooser?.onReceiveValue(null)
                 chooser = callback
@@ -128,10 +152,29 @@ class MainActivity : Activity() {
         setContentView(web)
         web.loadUrl("https://appassets.androidplatform.net/assets/index.html")
     }
+    override fun onRequestPermissionsResult(requestCode:Int, permissions:Array<out String>, grantResults:IntArray) {
+        super.onRequestPermissionsResult(requestCode,permissions,grantResults)
+        if(requestCode==microphoneRequest){
+            val request=pendingMicrophone
+            pendingMicrophone=null
+            if(request!=null) {
+                if(grantResults.firstOrNull()==PackageManager.PERMISSION_GRANTED&&request.origin?.host=="appassets.androidplatform.net")
+                    request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+                else request.deny()
+            }
+        }
+    }
     private fun executeJs(value: String) { runOnUiThread { if (::web.isInitialized) web.evaluateJavascript(value, null) } }
     @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode==voiceRequest){
+            if(resultCode==RESULT_OK){
+                val words=data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull().orEmpty()
+                if(words.isNotBlank())executeJs("window.DTV8&&window.DTV8.voiceResult(${JSONObject.quote(words.take(160))})")
+            }
+            return
+        }
         if (requestCode != fileRequest) return
         val list = mutableListOf<Uri>()
         if (resultCode == RESULT_OK) {
@@ -213,6 +256,53 @@ class MainActivity : Activity() {
         }
 
     private inner class Bridge {
+        @JavascriptInterface fun applyNativeEQ(raw:String, enabled:Boolean):Boolean {
+            return try {
+                if(raw.length>450)return false
+                val data=org.json.JSONArray(raw)
+                if(data.length()!=28)return false
+                val values=DoubleArray(28){data.getDouble(it)}
+                if(!values.all{it.isFinite()&&it in -12.0..12.0})return false
+                runOnUiThread{
+                    try{
+                        startService(Intent(this@MainActivity,PlaybackService::class.java)
+                            .setAction("com.drivetone.studio.UPDATE_EQ")
+                            .putExtra("bands",values).putExtra("enabled",enabled))
+                    }catch(_:Exception){}
+                }
+                true
+            }catch(_:Exception){false}
+        }
+        @JavascriptInterface fun getNativeEQStatus():String {
+            val p=getSharedPreferences("dt_v8_audio",MODE_PRIVATE)
+            return JSONObject().put("state",p.getString("state","waiting"))
+                .put("bands",p.getInt("realBands",0))
+                .put("detail",p.getString("detail",""))
+                .put("enabled",p.getBoolean("enabled",false)).toString()
+        }
+        @JavascriptInterface fun startVoiceCommand():Boolean {
+            val intent=Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply{
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE,"tr-TR")
+                putExtra(RecognizerIntent.EXTRA_PROMPT,"DRIVETONE: ses aç / ses kıs / durdur / sonraki")
+            }
+            runOnUiThread{
+                try{startActivityForResult(intent,voiceRequest)}
+                catch(_:Exception){executeJs("window.DTV8&&window.DTV8.voiceError()")}
+            }
+            return true
+        }
+        @JavascriptInterface fun getV8Diagnostics():String {
+            val battery=getSystemService(BATTERY_SERVICE) as? android.os.BatteryManager
+            return JSONObject()
+                .put("android",android.os.Build.VERSION.RELEASE)
+                .put("model",android.os.Build.MODEL.take(70))
+                .put("battery",battery?.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)?:-1)
+                .put("volume",getVolume())
+                .put("notificationAccess",notificationPermissionEnabled())
+                .put("nativePlayerReady",nativeController!=null).toString()
+        }
+
         @JavascriptInterface fun saveProfileJson(content: String): String {
             if (content.length > 35000 || !content.contains("\"drivetone.eq\"")) return "ERR:invalid profile"
             return try {
