@@ -30,6 +30,7 @@ jobs:
         run: |
           node --check app/src/main/assets/v8.js
           node --check app/src/main/assets/v10.js
+          node --check app/src/main/assets/v11.js
           node --check app/src/main/assets/v7.js
           node --check app/src/main/assets/v6.js
           python3 - <<'PY'
@@ -46,7 +47,14 @@ jobs:
           for item in ("v10-create","v10-play","v10-shuffle","v10-tab-favorites","v10-tab-recent","nativePlayCollection"):
               assert item in new_code, item
           assert "fun nativePlayCollection(" in activity
-          print("V8 and V10 source wiring verified.")
+          v11=(root/"v11.js").read_text()
+          assert '<script src="v11.js"></script>' in index
+          for name in ("v11-modal","v11-queue","v11-fade","v11-normalize","v11-profile-save","nativeQueueMove"):
+              assert name in v11
+          assert "configureV11" in activity and "nativeQueueJson" in activity
+          service=Path("app/src/main/java/com/drivetone/studio/PlaybackService.kt").read_text()
+          assert "DynamicsProcessing" in service and "finishFade()" in service
+          print("V11 source wiring verified.")
           PY
       - name: Assemble APK
         run: gradle --no-daemon --stacktrace assembleDebug
@@ -65,9 +73,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk DRIVETONE-V10.apk
-          if gh release view "v10.0.0-debug" >/dev/null 2>&1; then
-            gh release upload "v10.0.0-debug" DRIVETONE-V10.apk --clobber
+          cp app/build/outputs/apk/debug/app-debug.apk DRIVETONE-V11.apk
+          if gh release view "v11.0.0-debug" >/dev/null 2>&1; then
+            gh release upload "v11.0.0-debug" DRIVETONE-V11.apk --clobber
           else
-            gh release create "v10.0.0-debug" DRIVETONE-V10.apk --target "${GITHUB_SHA}" --title "DRIVETONE V10 — Android APK" --notes "Android telefonlara kurulabilir debug APK. Kaynak: GitHub Actions tarafından üretilmiştir. Test cihazında doğrulama gerektirir; FOR-X fiziksel DSP kontrolü henüz mevcut değildir." --prerelease
+            gh release create "v11.0.0-debug" DRIVETONE-V11.apk --target "${GITHUB_SHA}" --title "DRIVETONE V11 — Android APK" --notes "Android telefonlara kurulabilir debug APK. Kaynak: GitHub Actions tarafından üretilmiştir. Test cihazında doğrulama gerektirir; FOR-X fiziksel DSP kontrolü henüz mevcut değildir." --prerelease
           fi
