@@ -42,6 +42,8 @@ class MainActivity : Activity() {
     private lateinit var audio: AudioManager
     private lateinit var loader: WebViewAssetLoader
     private var chooser: ValueCallback<Array<Uri>>? = null
+    private var fileChooserIsAudio = false
+    @Volatile private var playbackSnapshot: String = "{\"ready\":false}"
     private val fileRequest = 5274
     private val handler = Handler(Looper.getMainLooper())
     private var previousVolume = -1
@@ -51,6 +53,7 @@ class MainActivity : Activity() {
     private val monitor = object : Runnable {
         override fun run() {
             if (!isFinishing && ::web.isInitialized) {
+                playbackSnapshot = getNativePlaybackSnapshot()
                 val v = getVolume()
                 if (v != previousVolume) {
                     previousVolume = v
@@ -110,6 +113,7 @@ class MainActivity : Activity() {
             override fun onShowFileChooser(view: WebView?, callback: ValueCallback<Array<Uri>>?, params: FileChooserParams?): Boolean {
                 chooser?.onReceiveValue(null)
                 chooser = callback
+                fileChooserIsAudio = params?.acceptTypes?.none { it.contains("json", ignoreCase = true) } != false
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
                     type = if (params?.acceptTypes?.any { it.contains("json", true) } == true) "application/json" else "audio/*"
@@ -136,7 +140,7 @@ class MainActivity : Activity() {
                 for (i in 0 until clips.itemCount) list.add(clips.getItemAt(i).uri)
             }
         }
-        if (list.isNotEmpty() && data?.type != "application/json") {
+        if (list.isNotEmpty() && fileChooserIsAudio) {
             list.forEach { uri ->
                 try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (_: Exception) {}
                 nativeLibrary.append(uri)
@@ -145,6 +149,7 @@ class MainActivity : Activity() {
         }
         chooser?.onReceiveValue(list.takeIf { it.isNotEmpty() }?.toTypedArray())
         chooser = null
+        fileChooserIsAudio = false
     }
     private fun getVolume(): Int {
         val max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1)
@@ -222,7 +227,8 @@ class MainActivity : Activity() {
         }
         @JavascriptInterface fun hapticTick() { runOnUiThread { if (::web.isInitialized) web.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) } }
         @JavascriptInterface fun getNativeLibrary(): String = nativeLibrary.json()
-        @JavascriptInterface fun getNativePlayback(): String {
+        @JavascriptInterface fun getNativePlayback(): String = playbackSnapshot
+    private fun getNativePlaybackSnapshot(): String {
             val ctrl = nativeController ?: return "{\"ready\":false}"
             return JSONObject().apply {
                 put("ready", true); put("playing", ctrl.isPlaying)
