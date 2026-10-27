@@ -12,11 +12,15 @@ document.head.insertAdjacentHTML("beforeend",'<style>'+
 '</style>');
 const fmt=ms=>{if(!Number.isFinite(ms)||ms<0)return "--:--";const s=Math.floor(ms/1000);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
 let tracks=[],playing=false,position=0,duration=0,activeIndex=-1;
+let lastListSignature="";
 function show(){
  const list=$("#v7-list");if(!list)return;
+ const sig=JSON.stringify(tracks.map(t=>[t.uri,t.title]))+"|"+activeIndex;
+ if(lastListSignature!==sig){lastListSignature=sig;
  list.innerHTML=tracks.length?tracks.map((t,i)=>'<div class="v7-item '+(activeIndex===i?"is-active":"")+'"><button class="v7-open" data-v7-play="'+i+'">'+(activeIndex===i?"♪ ":"♫ ")+I.escapeHtml(t.title)+'</button><button class="v7-remove" data-v7-delete="'+i+'" aria-label="Listeden kaldır">×</button></div>').join(""):'<div class="v7-empty"><p>Henüz kalıcı şarkı yok.</p><p>Alt taraftaki “Müzik ekle” ile dosyalarını seç.</p></div>';
  list.querySelectorAll("[data-v7-play]").forEach(b=>b.onclick=()=>{I.audio.pause();invoke("nativePlay",Number(b.dataset.v7Play))});
  list.querySelectorAll("[data-v7-delete]").forEach(b=>b.onclick=()=>{invoke("nativeRemove",Number(b.dataset.v7Delete));refreshLibrary()});
+ }
  $("#v7-status").textContent=native()?tracks.length+" parça kayıtlı":"Android uygulamasında aç";
  $("#v7-title").textContent=activeIndex>=0?tracks[activeIndex]?.title||"Parça":"Henüz parça seçilmedi";
  $("#v7-time").textContent=fmt(position)+" / "+fmt(duration);
