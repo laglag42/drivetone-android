@@ -47,3 +47,27 @@ assert 'hapticTick' in source
 subprocess.run(['node','--check',str(r/'app/src/main/assets/v6.js')],check=True)
 subprocess.run(['node','--check',str(r/'app/src/main/assets/v6-core.js')],check=True)
 print("V6: eight feature modules passed presence and syntax checks")
+
+# V7: actual Android media service, SAF storage and backup/diagnostics checks
+library=(r/'app/src/main/java/com/drivetone/studio/NativeMusicLibrary.kt').read_text()
+playback=(r/'app/src/main/java/com/drivetone/studio/PlaybackService.kt').read_text()
+v7=(r/'app/src/main/assets/v7.js').read_text()
+extras=(r/'app/src/main/assets/v7-extras.js').read_text()
+manifest=(r/'app/src/main/AndroidManifest.xml').read_text()
+assert 'takePersistableUriPermission' in source
+assert 'fun nativePlay(' in source and 'getNativePlaybackSnapshot' in source
+assert 'getRoutedOutput' in source and 'saveBackupJson' in source
+assert 'class NativeMusicLibrary' in library and 'SharedPreferences' not in library
+assert 'getSharedPreferences' in library and 'OpenableColumns.DISPLAY_NAME' in library
+assert 'class PlaybackService : MediaSessionService' in playback
+assert 'setAudioAttributes' in playback and 'true' in playback
+assert 'FOREGROUND_SERVICE_MEDIA_PLAYBACK' in manifest
+assert 'androidx.media3.session.MediaSessionService' in manifest
+assert '<script src="v7.js"></script><script src="v7-extras.js"></script>' in html
+for tag in ['v7-library','v7-toggle','v7-list','v7-refresh','v7-seek']:
+ assert tag in v7, tag
+for tag in ['v7-backup-save','v7-backup-restore','v7-route-refresh']:
+ assert tag in extras, tag
+for name in ['v7.js','v7-extras.js']:
+ subprocess.run(['node','--check',str(r/'app/src/main/assets'/name)],check=True)
+print('V7: native background playback, library, backup and diagnostics static checks passed')
