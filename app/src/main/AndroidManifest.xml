@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <queries>
         <package android:name="com.spotify.music"/>
         <package android:name="com.google.android.apps.youtube.music"/>
@@ -12,6 +15,9 @@
         <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="portrait">
             <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
         </activity>
+        <service android:name=".PlaybackService" android:foregroundServiceType="mediaPlayback" android:exported="true">
+          <intent-filter><action android:name="androidx.media3.session.MediaSessionService"/></intent-filter>
+        </service>
         <service android:name=".MediaAccessListener" android:label="DRIVETONE medya takibi"
           android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" android:exported="true">
           <intent-filter><action android:name="android.service.notification.NotificationListenerService"/></intent-filter>
