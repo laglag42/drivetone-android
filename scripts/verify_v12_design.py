@@ -30,6 +30,6 @@ js=(assets/"v12.js").read_text()
 css=(assets/"v12.css").read_text()
 for key in ["v12-shortcut","v12-eq-curve","v12-cabin-presets","v12-bridge","DTV12"]:
     assert key in js,key
-for key in [".dial", ".car-shell", "#eqBands", "#v11-modal", ".nav", "#v7-library"]:
+for key in [".dial", ".car-shell", ".eq-scroll", "#v11-modal", ".nav", "#v7-library"]:
     assert key in css,key
 print("V12 custom blue cockpit assets, DOM anchors and JS syntax verified; no APK produced.")
