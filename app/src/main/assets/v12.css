@@ -1,0 +1,190 @@
+/* DRIVETONE V12 — bespoke graphite/blue cockpit, based on user-selected design.
+   Existing features stay functional; this stylesheet overrides only presentation. */
+:root {color-scheme:dark}
+body.v12-design {
+ --ink:#f6f8fc; --muted:#92a0b7; --soft:#151e2b; --line:#263142;
+ --paper:#080d14; --card:#101824; --accent:#238cff; --accent-soft:#112844;
+ --grey:#77869b; --shadow:0 16px 42px rgba(0,0,0,.27);
+ background:#060a10; color:#edf4ff; color-scheme:dark;
+ font-family:Inter,"Manrope",system-ui,-apple-system,sans-serif;
+}
+html:has(body.v12-design) {background:#060a10;scroll-behavior:smooth}
+body.v12-design * { -webkit-tap-highlight-color:transparent }
+body.v12-design #app {background:radial-gradient(ellipse 85% 45% at 60% -5%,#14243a 0%,#090e17 43%,#090e16 100%); max-width:480px; box-shadow:0 0 0 1px #253244,0 20px 80px #0009}
+body.v12-design .app-body {padding:14px 18px 120px}
+body.v12-design .topbar{margin:0 -2px 12px;min-height:48px;position:relative;z-index:3}
+body.v12-design .brand{gap:5px}
+body.v12-design .brand-badge{display:none}
+body.v12-design .brand-word{font-size:20px;font-weight:860;letter-spacing:2px;text-transform:uppercase;color:#f0f5ff;text-shadow:0 0 20px #318cff19}
+body.v12-design .brand-word>span{color:#258bff!important}
+body.v12-design .top-actions{gap:5px}
+body.v12-design .circle-btn{background:#0d1622;border:1px solid #29384b;border-radius:12px;color:#b6c9e1;width:40px;height:40px}
+body.v12-design .circle-btn:active{background:#173b63}
+body.v12-design .page{animation:v12-enter .25s both}
+@keyframes v12-enter{from{opacity:.3;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+body.v12-design .kicker{font-size:10px;color:#49adff;letter-spacing:2.5px;font-weight:780}
+body.v12-design .heading{font-weight:830;letter-spacing:-1.1px;line-height:1.09;font-size:28px;margin:8px 0}
+body.v12-design .sub{color:#9aaac0;font-size:11px;line-height:1.7}
+body.v12-design .section-head{margin:24px 0 11px}
+body.v12-design .section-head h3{font-size:14px;font-weight:780;letter-spacing:0}
+body.v12-design .section-link{color:#53a9ff}
+body.v12-design .hint,body.v12-design .fine-print,body.v12-design .dt5-tiny {color:#91a0b5}
+body.v12-design .pill,body.v12-design .mini-tag{background:#162a42;color:#76bdff;border:1px solid #245182}
+body.v12-design .white-card,body.v12-design .player-card,body.v12-design .source-card,body.v12-design .metric,body.v12-design .v8-panel,body.v12-design .v10-panel,body.v12-design .v11-panel,body.v12-design .dt5-stack{
+ color:#eaf1fe;background:linear-gradient(150deg,#121c29,#0d141f);
+ border:1px solid #253448;box-shadow:inset 0 1px #ffffff07,0 8px 26px #0003;border-radius:16px;
+}
+body.v12-design .player-card {border-radius:18px;padding:14px;margin:12px 0 10px}
+body.v12-design .player-overline{color:#69b6ff}
+body.v12-design .track-name{color:#f5f8ff;font-size:15px}
+body.v12-design .track-artist,body.v12-design .track-source{color:#93a5bd}
+body.v12-design .album {border-radius:12px;background:linear-gradient(145deg,#132941,#02090f)}
+body.v12-design #albumArt{background:#071323 url('cover-v12.svg') center/cover no-repeat}
+body.v12-design .player-controls .playbtn {background:#0c1421;color:#fff;box-shadow:0 0 0 2px #2a97ff,0 0 22px #0b84ff8a}
+body.v12-design input[type=range]{accent-color:#259bff}
+body.v12-design .dt5-action-row button,body.v12-design .soft-btn,body.v12-design .wide-btn{background:#152133;color:#e0eeff;border:1px solid #2a3b53;border-radius:12px}
+body.v12-design .dt5-action-row button[aria-pressed=true],body.v12-design .soft-btn:active{background:#133f70}
+body.v12-design button:focus-visible,body.v12-design input:focus-visible{outline:2px solid #4aafff;outline-offset:3px}
+
+/* Reference-matched hero */
+body.v12-design #home>.kicker,body.v12-design #home>.heading,body.v12-design #home>.sub{display:none}
+body.v12-design .v12-overline{font-size:10px;letter-spacing:2.2px;color:#4cb0ff;display:flex;gap:7px;align-items:center;margin:5px 0 10px;text-transform:uppercase;font-weight:750}
+body.v12-design .v12-overline:before{content:"";background:#318eff;width:18px;height:2px;box-shadow:0 0 12px #2a8fff}
+body.v12-design #home .statusbar{border:0;padding:4px 0;background:transparent;margin:2px 0 6px}
+body.v12-design .status-icon{height:38px;width:55px;background:#101c2b;border:1px solid #213952;border-radius:10px}
+body.v12-design .status-icon svg{color:#3ba5ff}
+body.v12-design .status-text b{font-size:11px;color:#d3deee}
+body.v12-design .status-text small{font-size:10px;color:#8d9db3}
+body.v12-design .status-tag{font-size:9px;background:#152234;border:1px solid #334862;color:#8dbcf2;padding:7px 10px}
+
+/* Machined steel knob: layered conic metal grain and radial bevel */
+body.v12-design .vol-wrapper {margin:0}
+body.v12-design .vol-wrapper>.tiny-row{display:none}
+body.v12-design .dial-stage {height:285px;isolation:isolate;margin-top:0}
+body.v12-design .dial-stage:before{border:1px solid #182b41;width:264px;height:264px;box-shadow:0 0 44px #1865a618}
+body.v12-design .dial-ticks{width:282px;height:282px;background:repeating-conic-gradient(from 225deg,#447eaa 0 1deg,transparent 1deg 6deg);
+ -webkit-mask:radial-gradient(transparent 0 132px,#000 133px 138px,transparent 139px);
+ mask:radial-gradient(transparent 0 132px,#000 133px 138px,transparent 139px);opacity:.7}
+body.v12-design .dial-progress{width:266px;height:266px;background:conic-gradient(from 225deg,#31c1ff 0deg,#1288ff var(--sweep,144deg),transparent var(--sweep,144deg) 360deg);
+ filter:drop-shadow(0 0 6px #218aff);-webkit-mask:radial-gradient(transparent 0 123px,#000 124px 129px,transparent 130px);
+ mask:radial-gradient(transparent 0 123px,#000 124px 129px,transparent 130px);z-index:1}
+body.v12-design .dial{width:218px;height:218px;background:repeating-conic-gradient(#1b2837 0deg,#617487 1deg,#121a25 2deg,#253749 3deg);
+ box-shadow:0 20px 32px #000b,0 0 0 2px #627383,0 0 0 5px #111a25,0 0 18px #134c7d66;will-change:transform}
+body.v12-design .dial:before{inset:9px;background:conic-gradient(from 22deg,#1a2430,#ecf2f6 13%,#435261 18%,#d8e2ee 29%,#26323f 42%,#fafcff 54%,#526270 65%,#dbe3ec 81%,#1b2837);box-shadow:inset 0 0 0 2px #111a22,inset 0 0 11px #05080d}
+body.v12-design .dial:after{inset:22px;background:repeating-conic-gradient(from 5deg,#25313f 0 1deg,#1b2532 1deg 2deg,#212b38 2deg 3deg),radial-gradient(circle,#151a20,#0b1016);
+ box-shadow:inset 0 0 14px 8px #04060b,inset 0 0 2px 1px #60758b,0 0 0 2px #141f2c}
+body.v12-design .dial-inside{z-index:2}
+body.v12-design .dial-value{font-size:49px;color:#f4faff;text-shadow:0 2px 8px #000}
+body.v12-design .dial-percent{display:none}
+body.v12-design .dial-label{font-size:11px;letter-spacing:3px;color:#b2c5db;margin-top:2px}
+body.v12-design .volume-action{margin-top:-4px;position:relative;z-index:2}
+body.v12-design .volume-action-label{display:none}
+body.v12-design .step-btn{background:transparent;border:0;color:#e8f5ff;font-size:18px;width:56px;height:42px}
+body.v12-design .step-btn svg{width:24px;height:24px}
+body.v12-design .v12-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:18px 0}
+body.v12-design .v12-shortcut{min-width:0;min-height:88px;padding:11px 2px 9px;border:1px solid #28384a;border-radius:12px;
+ background:linear-gradient(145deg,#101924,#0a111c);color:#e9f3ff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+ box-shadow:inset 0 1px #ffffff0a;text-align:center}
+body.v12-design .v12-shortcut[data-active=true]{border-color:#32a7ff;background:linear-gradient(160deg,#122d4a,#0c1829);box-shadow:0 0 0 1px #147dff99,0 0 21px #0c76dc4d}
+body.v12-design .v12-shortcut svg{color:#49aaff;width:24px;height:24px}
+body.v12-design .v12-shortcut span{font-size:10px;font-weight:650;line-height:1.25}
+body.v12-design #home>.section-head:first-of-type{margin-top:14px}
+body.v12-design #homePresets{display:flex;gap:7px}
+body.v12-design .preset-chip{background:#121d2a;color:#a5b9d1;border:1px solid #253b53;border-radius:11px}
+body.v12-design .preset-chip.active{color:#d8efff;background:#133458;border-color:#288ff1;box-shadow:0 0 18px #146fd52c}
+body.v12-design .mini-tiles{gap:8px}
+body.v12-design .mini-tile{background:#101a27;color:#e9f2ff;border:1px solid #2a394f}
+
+/* Equalizer workstation */
+body.v12-design #eq .eq-card{position:relative;overflow:hidden}
+body.v12-design .eq-scroll{padding-bottom:10px}
+body.v12-design .eq-rail{border-color:#263a52;background:#172b43}
+body.v12-design .eq-thumb{background:linear-gradient(170deg,#b0e3ff,#258bff);border:1px solid #c4ebff;box-shadow:0 0 11px #259eff77}
+body.v12-design .eq-db{color:#c8e9ff;font-variant-numeric:tabular-nums}
+body.v12-design .eq-freq{color:#93a9c4}
+body.v12-design .v12-eq-curve{height:145px;width:100%;border-radius:12px;background:radial-gradient(ellipse at 50% 120%,#14304f,#0b121f 76%);margin:12px 0 15px;overflow:hidden;border:1px solid #1e3450}
+body.v12-design .v12-eq-curve svg{width:100%;height:100%;overflow:visible}
+body.v12-design .v12-eq-curve .grid{stroke:#24425f;stroke-width:.7;opacity:.6}
+body.v12-design .v12-eq-curve .line{stroke:#2b9cff;stroke-width:2.3;fill:none;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px #2e97ff)}
+body.v12-design .v12-eq-curve .fill{fill:url(#v12linefill);stroke:none}
+body.v12-design .v12-eq-curve .dot{fill:#c0e9ff;stroke:#238aff;stroke-width:2;filter:drop-shadow(0 0 4px #56b5ff)}
+body.v12-design .macro-grid .macro{border-color:#263d57}
+body.v12-design .v8-panel{background:#0e1723!important;color:#d7e5f9}
+body.v12-design .v8-btn{background:#15243a!important;border:1px solid #305276!important;color:#dcefff!important}
+body.v12-design .v8-info,body.v12-design .v8-report{background:#111f2f!important;color:#9fc4ea!important}
+body.v12-design .v8-field select{background:#0b1725!important;color:#eaf4ff!important;border-color:#2b4767!important}
+
+/* Cabin - landscape studio car renders */
+body.v12-design .car-shell{width:100%;max-width:none;min-height:225px;aspect-ratio:1.52;overflow:hidden;background:radial-gradient(ellipse at center,#1b2d40,#060c14 72%);border-radius:22px;border:1px solid #25384e;box-shadow:inset 0 0 25px #0009}
+body.v12-design .car-image{position:absolute;width:94%;height:97%;top:1.5%;left:3%;object-fit:contain;filter:drop-shadow(0 10px 12px #000b)}
+body.v12-design .car-label{font-size:9px;color:#81c5fa}
+body.v12-design .speaker{border:1px solid #258dff;color:#62c3ff;background:#0b1a2de8;box-shadow:0 0 0 4px #1181ff29,0 0 15px #108bff99}
+body.v12-design .speaker svg{width:16px;height:16px}
+body.v12-design .sp-fl{left:29%;top:22%}body.v12-design .sp-fr{left:68%;top:22%}
+body.v12-design .sp-rl{left:29%;top:75%}body.v12-design .sp-rr{left:68%;top:75%}
+body.v12-design .fader-target{background:#3ca9ff;box-shadow:0 0 0 10px #299aff32,0 0 32px #2f9cff}
+body.v12-design .v12-cabin-presets{display:flex;gap:8px;overflow-x:auto;padding:12px 0 1px;scrollbar-width:none}
+body.v12-design .v12-cabin-presets button{flex:1;min-width:70px;border:1px solid #2b4058;background:#121d2d;color:#a9bdd6;padding:12px 8px;border-radius:11px;font-size:11px}
+body.v12-design .v12-cabin-presets button[aria-pressed=true]{background:#153c68;border-color:#238fff;color:#fff;box-shadow:0 0 12px #167cff41}
+body.v12-design .metric{padding:13px}
+body.v12-design .metric small{color:#759cc2}
+body.v12-design .metric b{color:#edf6ff}
+body.v12-design .car-note{color:#7991ae}
+
+/* Library, Media Bridge and system panels */
+body.v12-design .source-card {background:#101a27;border-radius:13px;padding:13px 12px}
+body.v12-design .source-card .action{border:1px solid #25476b;background:#122b46;border-radius:10px;color:#6cbdff}
+body.v12-design .files-list button,body.v12-design .v7-list button{color:#dff1ff}
+body.v12-design .nav{background:linear-gradient(180deg,#101924,#090f18);border-top:1px solid #243448;box-shadow:0 -10px 25px #0007}
+body.v12-design .nav button{color:#8c9eb7}
+body.v12-design .nav button.active{color:#44a9ff}
+body.v12-design .nav button.active svg{filter:drop-shadow(0 0 6px #2488ff)}
+body.v12-design #v7-library{background:linear-gradient(150deg,#111e30,#0a111c);border:1px solid #2c3d54}
+body.v12-design #v7-library .v7-pill{color:#66c4ff}
+body.v12-design #v10-collections{background:#101925;border-color:#2b3c54;color:#f1f5ff}
+body.v12-design #v10-collections input,body.v12-design #v10-collections select,body.v12-design #v10-collections button{background:#152237;color:#e4f0ff;border-color:#2b4565}
+body.v12-design .v11-panel{background:linear-gradient(135deg,#111c2b,#090f18);color:#f1f7ff}
+body.v12-design .v11-panel p{color:#95acc8}
+body.v12-design .v11-panel button,body.v12-design .v11-panel select{background:#18283b;color:#e7f3ff;border-color:#2e4661}
+body.v12-design #v11-modal{background:radial-gradient(ellipse at 50% 26%,#102b4b,#050a12 75%);gap:12px;max-width:480px;left:50%;right:auto;transform:translateX(-50%);width:100%;z-index:1500}
+body.v12-design #v11-modal .v11-top{color:#d9ebff;letter-spacing:1.8px}
+body.v12-design #v11-modal #v11-art{background:#071424 url('cover-v12.svg') center/cover no-repeat;color:transparent;width:min(76vw,320px);box-shadow:0 17px 45px #000b,0 0 0 1px #2c5279;border-radius:15px}
+body.v12-design #v11-modal #v11-name{font-size:25px;font-weight:750;color:#f5faff}
+body.v12-design #v11-modal #v11-artist{color:#97aac4}
+body.v12-design #v11-modal #v11-wave{background:repeating-linear-gradient(90deg,#278cff 0 2px,transparent 2px 6px);height:48px;mask-image:linear-gradient(to right,#000 55%,transparent)}
+body.v12-design #v11-modal .v11-buttons button{background:#091929;border:1px solid #29415e}
+body.v12-design #v11-modal #v11-play{border-color:#299aff;border-radius:50%;box-shadow:0 0 0 2px #167dff,0 0 26px #1473e688}
+body.v12-design #v11-modal #v11-seek{accent-color:#339eff}
+body.v12-design .v12-bridge{margin:16px 0;border:1px solid #26415f;border-radius:18px;background:radial-gradient(ellipse at 70% 5%,#173657,#0c1624 60%);padding:18px;box-shadow:0 10px 24px #0003}
+body.v12-design .v12-bridge h2{font-size:17px;margin:5px 0 8px}
+body.v12-design .v12-bridge p{font-size:11px;line-height:1.65;color:#9fb4cc}
+body.v12-design .v12-bridge-visual{height:106px;display:flex;align-items:center;justify-content:space-around;position:relative}
+body.v12-design .v12-bridge-visual:before{content:"";position:absolute;left:26%;right:26%;height:24px;background:linear-gradient(90deg,#1d80ea14,#2f9fff,#1884e71a);filter:blur(14px)}
+body.v12-design .v12-bridge-visual .v12-device{z-index:1;background:linear-gradient(140deg,#294361,#070f18);border:1px solid #4778a5;box-shadow:0 6px 15px #0009,0 0 19px #0a71df44;display:grid;place-items:center;color:#70c5ff}
+body.v12-design .v12-phone{width:50px;height:78px;border-radius:11px}
+body.v12-design .v12-radio{width:100px;height:58px;border-radius:11px}
+body.v12-design .v12-device svg{width:32px;height:32px}
+body.v12-design .v12-bridge button{width:100%;min-height:48px;border-radius:13px;font-size:12px;font-weight:750;color:#031325;background:linear-gradient(120deg,#36b7ff,#167bff);box-shadow:0 7px 19px #197ff534}
+body.v12-design .v12-bridge .v12-warning{font-size:10px;line-height:1.7}
+body.v12-design #settings input,body.v12-design #settings select{color:#f5f8ff}
+body.v12-design #settings .switch.on{background:#1e9bff}
+body.v12-design .red-note{border-color:#284e71;background:#0e2135;color:#aac9eb}
+body.v12-design .toast{background:#112942;color:#fff;border:1px solid #297dbd}
+
+/* The user selected a fixed dark theme. No deceptive light switch. */
+body.v12-design #darkToggle{display:none}
+body.v12-design #darkToggle+*{display:none}
+body.v12-design #v8-ui{pointer-events:none}
+@media(max-width:370px){
+ body.v12-design .app-body{padding-left:13px;padding-right:13px}
+ body.v12-design .dial-stage{height:259px;transform:scale(.9);margin:-12px 0}
+ body.v12-design .v12-shortcut{min-height:78px}
+ body.v12-design .v12-shortcut span{font-size:9px}
+ body.v12-design .heading{font-size:25px}
+}
+@media(min-width:520px){
+ body.v12-design #app{border-radius:20px;margin:12px auto;min-height:calc(100vh - 24px)}
+}
+@media(prefers-reduced-motion:reduce){
+ body.v12-design *,body.v12-design *::before,body.v12-design *::after{transition-duration:.01ms!important;animation-duration:.01ms!important;scroll-behavior:auto!important}
+}
