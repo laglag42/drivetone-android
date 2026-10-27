@@ -13,6 +13,12 @@ import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.net.Uri
 import android.os.Bundle
+import androidx.media3.session.MediaController as NativeController
+import androidx.media3.session.SessionToken
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata as NativeMetadata
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import android.os.Handler
 import android.os.Looper
 import android.view.HapticFeedbackConstants
@@ -30,6 +36,9 @@ import org.json.JSONObject
 
 class MainActivity : Activity() {
     private lateinit var web: WebView
+    private lateinit var nativeLibrary: NativeMusicLibrary
+    private var nativeFuture: ListenableFuture<NativeController>? = null
+    private var nativeController: NativeController? = null
     private lateinit var audio: AudioManager
     private lateinit var loader: WebViewAssetLoader
     private var chooser: ValueCallback<Array<Uri>>? = null
@@ -69,6 +78,13 @@ class MainActivity : Activity() {
         window.navigationBarColor = Color.rgb(250,250,249)
         window.decorView.systemUiVisibility = android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
         audio = getSystemService(AUDIO_SERVICE) as AudioManager
+        nativeLibrary = NativeMusicLibrary(this)
+        val token = SessionToken(this, ComponentName(this, PlaybackService::class.java))
+        nativeFuture = NativeController.Builder(this, token).buildAsync()
+        nativeFuture?.addListener({
+            try { nativeController = nativeFuture?.get(); executeJs("window.DTV7&&window.DTV7.nativeReady()") }
+            catch (_: Exception) { executeJs("window.DTV7&&window.DTV7.nativeError()") }
+        }, MoreExecutors.directExecutor())
         volumeControlStream = AudioManager.STREAM_MUSIC
         loader = WebViewAssetLoader.Builder().addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this)).build()
         web = WebView(this)
@@ -119,6 +135,13 @@ class MainActivity : Activity() {
             data?.clipData?.let { clips ->
                 for (i in 0 until clips.itemCount) list.add(clips.getItemAt(i).uri)
             }
+        }
+        if (list.isNotEmpty() && data?.type != "application/json") {
+            list.forEach { uri ->
+                try { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (_: Exception) {}
+                nativeLibrary.append(uri)
+            }
+            executeJs("window.DTV7&&window.DTV7.refreshLibrary()")
         }
         chooser?.onReceiveValue(list.takeIf { it.isNotEmpty() }?.toTypedArray())
         chooser = null
@@ -198,6 +221,40 @@ class MainActivity : Activity() {
             } catch (_: Exception) { "ERR:storage unavailable" }
         }
         @JavascriptInterface fun hapticTick() { runOnUiThread { if (::web.isInitialized) web.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) } }
+        @JavascriptInterface fun getNativeLibrary(): String = nativeLibrary.json()
+        @JavascriptInterface fun getNativePlayback(): String {
+            val ctrl = nativeController ?: return "{\"ready\":false}"
+            return JSONObject().apply {
+                put("ready", true); put("playing", ctrl.isPlaying)
+                put("position", ctrl.currentPosition)
+                put("duration", ctrl.duration)
+                put("index", ctrl.currentMediaItemIndex)
+                put("title", ctrl.mediaMetadata.title?.toString().orEmpty())
+            }.toString()
+        }
+        @JavascriptInterface fun nativePlay(index: Int) {
+            runOnUiThread {
+                val ctrl = nativeController ?: return@runOnUiThread
+                val tracks = nativeLibrary.all()
+                if(index !in tracks.indices) return@runOnUiThread
+                val items = tracks.map { t -> MediaItem.Builder()
+                    .setUri(t.uri)
+                    .setMediaMetadata(NativeMetadata.Builder().setTitle(t.title).build())
+                    .build() }
+                ctrl.setMediaItems(items,index,0)
+                ctrl.prepare();ctrl.play()
+            }
+        }
+        @JavascriptInterface fun nativeToggle() { runOnUiThread {
+            nativeController?.let { if(it.isPlaying) it.pause() else it.play() }
+        }}
+        @JavascriptInterface fun nativeNext() { runOnUiThread { nativeController?.seekToNextMediaItem() } }
+        @JavascriptInterface fun nativePrevious() { runOnUiThread { nativeController?.seekToPreviousMediaItem() } }
+        @JavascriptInterface fun nativeSeek(position: Long) { runOnUiThread {
+            nativeController?.seekTo(position.coerceAtLeast(0L))
+        }}
+        @JavascriptInterface fun nativeRemove(index: Int) { nativeLibrary.remove(index); executeJs("window.DTV7&&window.DTV7.refreshLibrary()") }
+        @JavascriptInterface fun nativeClear() { nativeLibrary.clear(); executeJs("window.DTV7&&window.DTV7.refreshLibrary()") }
         @JavascriptInterface fun getMediaVolume(): Int = getVolume()
         @JavascriptInterface fun setMediaVolume(percent: Int) {
             try {
@@ -243,6 +300,7 @@ class MainActivity : Activity() {
     override fun onPause() { handler.removeCallbacks(monitor); super.onPause() }
     override fun onDestroy() {
         handler.removeCallbacks(monitor)
+        nativeFuture?.let { NativeController.releaseFuture(it) }
         if (::web.isInitialized) {
             web.removeJavascriptInterface("AndroidBridge")
             web.destroy()
