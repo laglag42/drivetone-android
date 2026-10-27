@@ -95,7 +95,7 @@ class MainActivity : Activity() {
                 chooser = callback
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
-                    type = "audio/*"
+                    type = if (params?.acceptTypes?.any { it.contains("json", true) } == true) "application/json" else "audio/*"
                     putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
