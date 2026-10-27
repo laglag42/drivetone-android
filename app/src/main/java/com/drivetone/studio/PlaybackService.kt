@@ -11,6 +11,7 @@ import org.json.JSONArray
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.max
+import kotlin.math.min
 
 /** Device-supported audio-session EQ (up to device's actual band count). */
 class PlaybackService : MediaSessionService() {
@@ -47,6 +48,18 @@ class PlaybackService : MediaSessionService() {
         try {eq=Equalizer(0,id); applyBands()}
         catch(e:Exception){report("unsupported",0,"Cihaz EQ desteklemiyor: "+e.javaClass.simpleName)}
     }
+    // Interpolate between adjacent EQ points in logarithmic frequency space.
+    // Devices expose different physical band counts and center frequencies.
+    private fun interpolatedDb(hz: Double): Double {
+        if (hz <= centers.first()) return target.first()
+        if (hz >= centers.last()) return target.last()
+        val upper = centers.indexOfFirst { it >= hz }.coerceIn(1,centers.lastIndex)
+        val a = centers[upper - 1].toDouble()
+        val b = centers[upper].toDouble()
+        val fraction = (ln(hz) - ln(a)) / (ln(b) - ln(a))
+        return (target[upper - 1] * (1.0 - fraction) + target[upper] * fraction).coerceIn(-12.0,12.0)
+    }
+
     private fun applyBands() {
         val fx=eq?:run {report("waiting",0,"Yerel müzik başlayınca EQ etkinleşir");return}
         try {
@@ -55,8 +68,7 @@ class PlaybackService : MediaSessionService() {
             require(count>0&&range.size>=2)
             for(i in 0 until count) {
                 val hz=max(1.0,fx.getCenterFreq(i.toShort()).toDouble()/1000.0)
-                val nearest=centers.indices.minByOrNull {abs(ln(centers[it].toDouble()/hz))}?:0
-                val db=if(active)(target[nearest]*100).toInt()else 0
+                val db=if(active)(interpolatedDb(hz)*100).toInt()else 0
                 fx.setBandLevel(i.toShort(),db.coerceIn(range[0].toInt(),range[1].toInt()).toShort())
             }
             fx.enabled=active
