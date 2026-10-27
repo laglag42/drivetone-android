@@ -403,6 +403,46 @@ class MainActivity : Activity() {
                 true
             } catch (_: Exception) { false }
         }
+        @JavascriptInterface fun configureV11(crossfade: Int, normalize: Boolean): Boolean {
+            if(crossfade !in listOf(0,2,4,8))return false
+            runOnUiThread {
+                try {
+                    startService(Intent(this@MainActivity,PlaybackService::class.java)
+                        .setAction("com.drivetone.studio.UPDATE_V11")
+                        .putExtra("crossfade",crossfade).putExtra("normalize",normalize))
+                }catch(_:Exception){}
+            }
+            return true
+        }
+        @JavascriptInterface fun getV11Status(): String {
+            val p=getSharedPreferences("dt_v11_effects",MODE_PRIVATE)
+            return JSONObject().put("crossfade",p.getInt("crossfade",0))
+                .put("normalize",p.getBoolean("normalize",false))
+                .put("normalizeState",p.getString("normalizeState","waiting")).toString()
+        }
+        @JavascriptInterface fun nativeQueueMove(from:Int, to:Int): Boolean {
+            val c=nativeController ?: return false
+            if(from<0||to<0||from>=c.mediaItemCount||to>=c.mediaItemCount)return false
+            runOnUiThread { try{nativeController?.moveMediaItem(from,to)}catch(_:Exception){} }
+            return true
+        }
+        @JavascriptInterface fun nativeQueueRemove(index:Int): Boolean {
+            val c=nativeController ?: return false
+            if(index<0||index>=c.mediaItemCount)return false
+            runOnUiThread { try{nativeController?.removeMediaItem(index)}catch(_:Exception){} }
+            return true
+        }
+        @JavascriptInterface fun nativeQueueJson():String {
+            val c=nativeController ?: return "[]"
+            val a=org.json.JSONArray()
+            for(i in 0 until minOf(c.mediaItemCount,150)){
+                val t=c.getMediaItemAt(i)
+                a.put(JSONObject().put("index",i).put("title",t.mediaMetadata.title?.toString().orEmpty())
+                    .put("uri",t.localConfiguration?.uri?.toString().orEmpty())
+                    .put("current",i==c.currentMediaItemIndex))
+            }
+            return a.toString()
+        }
         @JavascriptInterface fun nativePlaybackOptions(shuffle: Boolean, repeat: Int, speed: Float): Boolean {
             if (repeat !in 0..2 || !speed.isFinite() || speed < .75f || speed > 1.5f) return false
             getSharedPreferences("dt_v9_playback", MODE_PRIVATE).edit()
