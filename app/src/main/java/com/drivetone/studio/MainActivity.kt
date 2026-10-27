@@ -362,6 +362,47 @@ class MainActivity : Activity() {
                 ctrl.prepare();ctrl.play()
             }
         }
+        /**
+         * V10: Play only selected, already-authorized library items.
+         * Raw input is an array of library indices, never arbitrary file URLs.
+         */
+        @JavascriptInterface fun nativePlayCollection(rawIndices: String, shuffle: Boolean): Boolean {
+            if (rawIndices.length > 550 || nativeController == null) return false
+            return try {
+                val array = org.json.JSONArray(rawIndices)
+                if (array.length() !in 1..80) return false
+                val saved = nativeLibrary.all()
+                val selected = ArrayList<Int>()
+                for (i in 0 until array.length()) {
+                    val index = array.getInt(i)
+                    if (index !in saved.indices) return false
+                    if (!selected.contains(index)) selected.add(index)
+                }
+                if (selected.isEmpty() || !nativeLibrary.exists(selected.first())) return false
+                runOnUiThread {
+                    val controller = nativeController ?: return@runOnUiThread
+                    try {
+                        val current = nativeLibrary.all()
+                        val items = selected.mapNotNull { i ->
+                            current.getOrNull(i)?.let { track ->
+                                MediaItem.Builder()
+                                    .setUri(track.uri)
+                                    .setMediaMetadata(NativeMetadata.Builder().setTitle(track.title).build())
+                                    .build()
+                            }
+                        }
+                        if (items.isEmpty()) return@runOnUiThread
+                        controller.shuffleModeEnabled = shuffle
+                        controller.setMediaItems(items, 0, 0L)
+                        controller.prepare()
+                        controller.play()
+                    } catch (_: Exception) {
+                        executeJs("window.DTV10&&window.DTV10.playbackError()")
+                    }
+                }
+                true
+            } catch (_: Exception) { false }
+        }
         @JavascriptInterface fun nativePlaybackOptions(shuffle: Boolean, repeat: Int, speed: Float): Boolean {
             if (repeat !in 0..2 || !speed.isFinite() || speed < .75f || speed > 1.5f) return false
             getSharedPreferences("dt_v9_playback", MODE_PRIVATE).edit()
