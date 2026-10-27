@@ -73,9 +73,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk DRIVETONE-V11.apk
-          if gh release view "v11.0.0-debug" >/dev/null 2>&1; then
-            gh release upload "v11.0.0-debug" DRIVETONE-V11.apk --clobber
+          cp app/build/outputs/apk/debug/app-debug.apk DRIVETONE-V11-FIXED.apk
+          if gh release view "v11.1.0-debug" >/dev/null 2>&1; then
+            gh release upload "v11.1.0-debug" DRIVETONE-V11-FIXED.apk --clobber
           else
-            gh release create "v11.0.0-debug" DRIVETONE-V11.apk --target "${GITHUB_SHA}" --title "DRIVETONE V11 — Android APK" --notes "Android telefonlara kurulabilir debug APK. Kaynak: GitHub Actions tarafından üretilmiştir. Test cihazında doğrulama gerektirir; FOR-X fiziksel DSP kontrolü henüz mevcut değildir." --prerelease
+            gh release create "v11.1.0-debug" DRIVETONE-V11-FIXED.apk --target "${GITHUB_SHA}" --title "DRIVETONE V11.1 — Fixed Android APK" --notes "Android telefonlara kurulabilir debug APK. Kaynak: GitHub Actions tarafından üretilmiştir. Test cihazında doğrulama gerektirir; FOR-X fiziksel DSP kontrolü henüz mevcut değildir." --prerelease
           fi
