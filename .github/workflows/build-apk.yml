@@ -63,6 +63,15 @@ jobs:
           test -s app/build/outputs/apk/debug/app-debug.apk
           unzip -t app/build/outputs/apk/debug/app-debug.apk | tail -3
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging app/build/outputs/apk/debug/app-debug.apk | head -10
+      - name: Verify merged APK contains no notification listener
+        run: |
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump xmltree "$APK" AndroidManifest.xml > /tmp/drivetone-manifest.txt
+          if grep -E "BIND_NOTIFICATION_LISTENER_SERVICE|MediaAccessListener|NotificationListenerService|READ_SMS|BIND_ACCESSIBILITY_SERVICE" /tmp/drivetone-manifest.txt; then
+            echo "::error::Unexpected sensitive manifest item"
+            exit 1
+          fi
+          echo "No sensitive notification or SMS manifest entry."
       - uses: actions/upload-artifact@v4
         with:
           name: DRIVETONE-debug-apk
@@ -73,9 +82,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk DRIVETONE-V11-FIXED.apk
-          if gh release view "v11.1.0-debug" >/dev/null 2>&1; then
-            gh release upload "v11.1.0-debug" DRIVETONE-V11-FIXED.apk --clobber
+          cp app/build/outputs/apk/debug/app-debug.apk DRIVETONE-V11-2-SAFE.apk
+          if gh release view "v11.2.0-safe-debug" >/dev/null 2>&1; then
+            gh release upload "v11.2.0-safe-debug" DRIVETONE-V11-2-SAFE.apk --clobber
           else
-            gh release create "v11.1.0-debug" DRIVETONE-V11-FIXED.apk --target "${GITHUB_SHA}" --title "DRIVETONE V11.1 — Fixed Android APK" --notes "Android telefonlara kurulabilir debug APK. Kaynak: GitHub Actions tarafından üretilmiştir. Test cihazında doğrulama gerektirir; FOR-X fiziksel DSP kontrolü henüz mevcut değildir." --prerelease
+            gh release create "v11.2.0-safe-debug" DRIVETONE-V11-2-SAFE.apk --target "${GITHUB_SHA}" --title "DRIVETONE V11.2 — Safer Android APK" --notes "Android telefonlara kurulabilir debug APK. Kaynak: GitHub Actions tarafından üretilmiştir. Test cihazında doğrulama gerektirir; FOR-X fiziksel DSP kontrolü henüz mevcut değildir." --prerelease
           fi
