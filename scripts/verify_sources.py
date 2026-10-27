@@ -71,3 +71,12 @@ for tag in ['v7-backup-save','v7-backup-restore','v7-route-refresh']:
 for name in ['v7.js','v7-extras.js']:
  subprocess.run(['node','--check',str(r/'app/src/main/assets'/name)],check=True)
 print('V7: native background playback, library, backup and diagnostics static checks passed')
+
+# V11.2: Prohibit notification listener and risky permissions in source.
+manifest=(r/'app/src/main/AndroidManifest.xml').read_text()
+activity=(r/'app/src/main/java/com/drivetone/studio/MainActivity.kt').read_text()
+for banned in ('BIND_NOTIFICATION_LISTENER_SERVICE','NotificationListenerService','READ_SMS','BIND_ACCESSIBILITY_SERVICE'):
+ assert banned not in manifest, banned
+assert 'openNotificationAccess' not in activity
+assert 'getActiveSessions(' not in activity
+print('V11.2 sensitive permission and service checks passed')
