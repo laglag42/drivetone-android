@@ -28,7 +28,35 @@ function show(){
  $("#v7-seek").value=duration>0?Math.min(1000,Math.round(position/duration*1000)):0;
 }
 function refreshLibrary(){if(!native()){tracks=[];show();return}try{const x=JSON.parse(invoke("getNativeLibrary")||"[]");tracks=Array.isArray(x)?x.filter(t=>typeof t.title==="string").slice(0,500):[]}catch{tracks=[]}show()}
-function poll(){if(native()){try{const x=JSON.parse(invoke("getNativePlayback")||"{}");if(x.ready){activeIndex=Number.isInteger(x.index)?x.index:-1;position=x.position;duration=x.duration;playing=!!x.playing}else{activeIndex=-1;playing=false}show()}catch{}}}
+function poll(){if(native()){try{const x=JSON.parse(invoke("getNativePlayback")||"{}");if(x.ready){
+ const trackIndex=tracks.findIndex(t=>t.uri===x.uri);
+ activeIndex=trackIndex>=0?trackIndex:(Number.isInteger(x.index)&&x.index<tracks.length?x.index:-1);
+ position=x.position;duration=x.duration;playing=!!x.playing;
+ if(!optsInitialized) {
+   optsInitialized=true;
+   nativeOptions={shuffle:!!x.shuffle,repeat:Number(x.repeat)||0,speed:Number(x.speed)||1};
+   paintOptions();
+ }
+}else{activeIndex=-1;playing=false}show()}catch{}}}
+panel.querySelector(".v7-controls").insertAdjacentHTML("afterend",
+  '<div class="v9-options"><button id="v9-shuffle" aria-pressed="false">Karıştır: Kapalı</button><button id="v9-repeat">Tekrar: Kapalı</button><label>Hız <select id="v9-speed"><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option></select></label></div>');
+document.head.insertAdjacentHTML("beforeend",'<style>.v9-options{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:15px}.v9-options button,.v9-options select{border:1px solid #565d68;border-radius:10px;background:#292f39;color:#fff;min-height:42px;padding:9px;font-size:11px}.v9-options label{font-size:11px;color:#fff}.v9-options select{margin-left:5px}</style>');
+let nativeOptions={shuffle:false,repeat:0,speed:1},optsInitialized=false;
+function optionsSend(){
+ if(!native())return;
+ const ok=invoke("nativePlaybackOptions",nativeOptions.shuffle,nativeOptions.repeat,Number(nativeOptions.speed));
+ if(!ok)I.toast("Android oynatma seçenekleri kaydedilemedi");
+}
+function paintOptions(){
+ $("#v9-shuffle").textContent="Karıştır: "+(nativeOptions.shuffle?"Açık":"Kapalı");
+ $("#v9-shuffle").setAttribute("aria-pressed",String(nativeOptions.shuffle));
+ $("#v9-repeat").textContent=["Tekrar: Kapalı","Tekrar: Tümü","Tekrar: Şarkı"][nativeOptions.repeat]||"Tekrar: Kapalı";
+ $("#v9-speed").value=String(nativeOptions.speed);
+}
+$("#v9-shuffle").onclick=()=>{nativeOptions.shuffle=!nativeOptions.shuffle;paintOptions();optionsSend()};
+$("#v9-repeat").onclick=()=>{nativeOptions.repeat=(nativeOptions.repeat+1)%3;paintOptions();optionsSend()};
+$("#v9-speed").onchange=e=>{nativeOptions.speed=Number(e.target.value);paintOptions();optionsSend()};
+paintOptions();
 $("#v7-refresh").onclick=refreshLibrary;
 $("#v7-clear").onclick=()=>{if(confirm("Kalıcı kütüphaneden tüm müzikleri kaldırmak istiyor musun? Dosyalar telefonundan silinmez.")){invoke("nativeClear");refreshLibrary()}};
 $("#v7-toggle").onclick=()=>{I.audio.pause();invoke("nativeToggle")};
