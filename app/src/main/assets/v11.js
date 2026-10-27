@@ -17,8 +17,9 @@ function effect(){if(!android())return;call("configureV11",conf.fade,conf.normal
 $("#v11-fade").value=String(conf.fade);$("#v11-normalize").checked=conf.normalize;
 $("#v11-fade").onchange=e=>{conf.fade=Number(e.target.value);effect()};
 $("#v11-normalize").onchange=e=>{conf.normalize=e.target.checked;effect()};
-$("#v11-open").onclick=()=>{$("#v11-modal").hidden=false;I.audio.pause();poll()};
-$("#v11-close").onclick=()=>$("#v11-modal").hidden=true;
+$("#v11-open").onclick=()=>{$("#v11-modal").hidden=false;call("setV11Fullscreen",true);I.audio.pause();poll()};
+function closePlayer(){$("#v11-modal").hidden=true;call("setV11Fullscreen",false)}
+$("#v11-close").onclick=closePlayer;
 $("#v11-play").onclick=()=>call("nativeToggle");
 $("#v11-prev").onclick=()=>call("nativePrevious");
 $("#v11-next").onclick=()=>call("nativeNext");
@@ -34,7 +35,12 @@ function move(i,d){call("nativeQueueMove",i,i+d);setTimeout(refreshQueue,200)}
 function refreshQueue(){try{const data=JSON.parse(call("nativeQueueJson")||"[]");queue=Array.isArray(data)?data.slice(0,150):[]}catch{queue=[]}queueRender()}
 $("#v11-refresh").onclick=refreshQueue;
 function device(){
- const name=String(call("getBluetoothOutput")||"").trim();
+ let name="";
+ try {
+  const raw=JSON.parse(call("getRoutedOutput")||"{}");
+  const devices=Array.isArray(raw.devices)?raw.devices.filter(x=>x.category==="Bluetooth"):[];
+  if(raw.supported&&devices.length===1)name=String(devices[0].product||"").trim();
+ }catch{} 
  // Require an actual named output; do not silently auto-apply on unverified names.
  $("#v11-device").textContent=name?"Algılanan Bluetooth çıkışı: "+name:"Bluetooth çıkışı bulunamadı";
  if(name&&name!==lastDevice&&conf.deviceProfiles[name]){
@@ -46,7 +52,7 @@ function device(){
  lastDevice=name;
  return name;
 }
-$("#v11-profile-save").onclick=()=>{const name=device();if(!name)return I.toast("Bluetooth cihazı algılanmadı");conf.deviceProfiles[name]=I.state.eq.slice();persist();I.toast("Bu cihaz için EQ kaydedildi")};
+$("#v11-profile-save").onclick=()=>{const name=device();if(!name)return I.toast("Bluetooth cihazı algılanmadı");conf.deviceProfiles[name]=I.state.eq.slice();persist();I.toast("Seçili çıkış için EQ kaydedildi")};
 $("#v11-profile-off").onclick=()=>{const name=device();if(!name)return;delete conf.deviceProfiles[name];persist();I.toast("Cihaz profili silindi")};
 let lastUri="",counter=0;
 function poll(){
@@ -68,6 +74,7 @@ function poll(){
   }
  }catch{}
 }
+window.DTV11={queueChanged:refreshQueue,closePlayer};
 effect();refreshQueue();poll();setInterval(poll,1200);
 const label=$("#dt5-version");if(label)label.textContent="DRIVETONE V11 · STUDIO";
 const dock=document.querySelector(".v6-dock strong");if(dock)dock.textContent="11";
