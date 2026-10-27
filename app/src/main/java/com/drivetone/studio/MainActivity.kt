@@ -207,7 +207,7 @@ class MainActivity : Activity() {
                 put("ready", true); put("playing", ctrl.isPlaying)
                 put("position", ctrl.currentPosition)
                 put("duration", ctrl.duration)
-                put("index", ctrl.currentMediaItemIndex)
+                put("index", if (ctrl.currentMediaItem == null) -1 else ctrl.currentMediaItemIndex)
                 put("title", ctrl.mediaMetadata.title?.toString().orEmpty())
             }.toString()
         }
@@ -244,6 +244,10 @@ class MainActivity : Activity() {
                 val ctrl = nativeController ?: return@runOnUiThread
                 val tracks = nativeLibrary.all()
                 if(index !in tracks.indices) return@runOnUiThread
+                if (!nativeLibrary.exists(index)) {
+                    executeJs("window.DTV7&&window.DTV7.nativeError()")
+                    return@runOnUiThread
+                }
                 val items = tracks.map { t -> MediaItem.Builder()
                     .setUri(t.uri)
                     .setMediaMetadata(NativeMetadata.Builder().setTitle(t.title).build())
@@ -252,6 +256,7 @@ class MainActivity : Activity() {
                 ctrl.prepare();ctrl.play()
             }
         }
+        @JavascriptInterface fun nativePause() { runOnUiThread { nativeController?.pause() } }
         @JavascriptInterface fun nativeToggle() { runOnUiThread {
             nativeController?.let { if(it.isPlaying) it.pause() else it.play() }
         }}
