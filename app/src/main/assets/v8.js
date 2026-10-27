@@ -52,6 +52,20 @@ q("#v8-ui").value=cfg.ui;q("#v8-smart-type").value=cfg.smartProfile;
 q("#v8-reduce").checked=!!cfg.reduce;
 q("#v8-native-enable").onchange=e=>{cfg.eq=e.target.checked;safe();sendEQ()};
 q("#v8-eq-send").onclick=sendEQ;
+let syncTimer=0, lastEQ="";
+function syncIfChanged(){
+ if(!cfg.eq||!native())return;
+ const signature=JSON.stringify(S.eq);
+ if(signature===lastEQ)return;
+ lastEQ=signature;
+ clearTimeout(syncTimer);
+ syncTimer=setTimeout(sendEQ,450);
+}
+const eqRoot=q("#eqBands");
+if(eqRoot)eqRoot.addEventListener("pointerup",syncIfChanged,{passive:true});
+if(eqRoot)eqRoot.addEventListener("keyup",syncIfChanged);
+q("#eq")?.addEventListener("click",()=>setTimeout(syncIfChanged,160));
+
 q("#v8-smart").onchange=e=>{cfg.smart=e.target.checked;safe()};
 q("#v8-smart-type").onchange=e=>{cfg.smartProfile=e.target.value;safe()};
 q("#v8-smart-apply").onclick=()=>{
@@ -139,6 +153,6 @@ const voiceResult=text=>{
  else I.toast("Komut tanınmadı; ses aç/kıs, sonraki, durdur deneyin");
 };
 window.DTV8={voiceResult,voiceError:()=>{q("#v8-voice-status").textContent="Ses tanıma başlatılamadı"},syncEQ:sendEQ};
-route();diagnostics();applyTheme();setInterval(()=>{if(!document.hidden)pollEQ()},3200);pollEQ();
+route();diagnostics();applyTheme();setTimeout(()=>{if(cfg.eq)sendEQ()},900);setInterval(()=>{if(!document.hidden)pollEQ()},3200);pollEQ();
 q("#dt5-version")&&(q("#dt5-version").textContent="DRIVETONE V8 · STUDIO");
 })();
