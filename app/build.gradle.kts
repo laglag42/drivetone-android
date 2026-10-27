@@ -6,8 +6,8 @@ android {
         applicationId = "com.drivetone.studio"
         minSdk = 26
         targetSdk = 34
-        versionCode = 10
-        versionName = "10.0-debug"
+        versionCode = 11
+        versionName = "11.0-debug"
     }
     buildTypes { release { isMinifyEnabled = false } }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
