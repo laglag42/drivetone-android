@@ -1,0 +1,26 @@
+name: V12 design checks (NO APK)
+on:
+  push:
+    branches: ["design/v12-blue-cockpit"]
+  pull_request:
+    branches: [main]
+jobs:
+  design:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test V12 HTML, JS and SVG assets
+        run: python3 scripts/verify_v12_design.py
+      - name: Verify notification-listener safety is unchanged
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path("app/src/main/AndroidManifest.xml").read_text()
+          assert "BIND_NOTIFICATION_LISTENER_SERVICE" not in s
+          print("Notification listener not reintroduced.")
+          PY
