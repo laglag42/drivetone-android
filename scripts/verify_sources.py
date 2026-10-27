@@ -57,7 +57,7 @@ manifest=(r/'app/src/main/AndroidManifest.xml').read_text()
 assert 'takePersistableUriPermission' in source
 assert 'fun nativePlay(' in source and 'getNativePlaybackSnapshot' in source
 assert 'getRoutedOutput' in source and 'saveBackupJson' in source
-assert 'class NativeMusicLibrary' in library and 'SharedPreferences' not in library
+assert 'class NativeMusicLibrary' in library
 assert 'getSharedPreferences' in library and 'OpenableColumns.DISPLAY_NAME' in library
 assert 'class PlaybackService : MediaSessionService' in playback
 assert 'setAudioAttributes' in playback and 'true' in playback
