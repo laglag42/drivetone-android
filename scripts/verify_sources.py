@@ -35,3 +35,15 @@ with tempfile.TemporaryDirectory() as td:
  subprocess.run(['node','--check',str(script)],check=True)
  subprocess.run(['node','--check',str(r/'app/src/main/assets/features.js')],check=True)
 print('V5: 10 new feature points and JavaScript syntax checks passed.')
+
+v6=(r/'app/src/main/assets/v6.js').read_text()
+core=(r/'app/src/main/assets/v6-core.js').read_text()
+assert '<script src="v6-core.js"></script><script src="v6.js"></script>' in html
+for text in ['v6-brain','v6-protect','v6-carview','v6-drive','v6-haptic','v6-safe','v6-source-matrix','v6-test-100']:
+ assert text in v6,text
+for text in ['makeOffsets','safeStartVolume','protectFromPeak','detectSource']:
+ assert text in core,text
+assert 'hapticTick' in source
+subprocess.run(['node','--check',str(r/'app/src/main/assets/v6.js')],check=True)
+subprocess.run(['node','--check',str(r/'app/src/main/assets/v6-core.js')],check=True)
+print("V6: eight feature modules passed presence and syntax checks")
