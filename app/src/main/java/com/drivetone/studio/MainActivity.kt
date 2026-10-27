@@ -261,6 +261,34 @@ class MainActivity : Activity() {
         }}
         @JavascriptInterface fun nativeRemove(index: Int) { nativeLibrary.remove(index); executeJs("window.DTV7&&window.DTV7.refreshLibrary()") }
         @JavascriptInterface fun nativeClear() { nativeLibrary.clear(); executeJs("window.DTV7&&window.DTV7.refreshLibrary()") }
+        @JavascriptInterface fun getRoutedOutput(): String {
+            val out = JSONObject()
+            if (android.os.Build.VERSION.SDK_INT < 33) {
+                return out.put("supported", false).put("reason", "Android 13 ve ustunde tahmini ses yolu goruntulenebilir").toString()
+            }
+            return try {
+                val attrs = android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_MEDIA).build()
+                val devices = audio.getAudioDevicesForAttributes(attrs)
+                val array = org.json.JSONArray()
+                devices.forEach { device ->
+                    val label = when (device.type) {
+                        AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, AudioDeviceInfo.TYPE_BLUETOOTH_SCO -> "Bluetooth"
+                        AudioDeviceInfo.TYPE_WIRED_HEADPHONES, AudioDeviceInfo.TYPE_WIRED_HEADSET -> "Kablolu kulaklik"
+                        AudioDeviceInfo.TYPE_USB_HEADSET, AudioDeviceInfo.TYPE_USB_DEVICE -> "USB ses"
+                        AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> "Telefon hoparloru"
+                        AudioDeviceInfo.TYPE_HDMI -> "HDMI"
+                        else -> "Diger cikis"
+                    }
+                    array.put(JSONObject().put("category", label)
+                        .put("product", device.productName?.toString().orEmpty().take(120))
+                        .put("type", device.type))
+                }
+                out.put("supported", true).put("predicted", true).put("devices", array).toString()
+            } catch (_: Exception) {
+                out.put("supported", false).put("reason", "Ses cikisi okunamadi").toString()
+            }
+        }
         @JavascriptInterface fun getMediaVolume(): Int = getVolume()
         @JavascriptInterface fun setMediaVolume(percent: Int) {
             try {
