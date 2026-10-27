@@ -1,3 +1,18 @@
+# DRIVETONE V11 — Premium Player & Audio Studio
+
+**Doğrudan APK:** https://github.com/laglag42/drivetone-android/releases/download/v11.0.0-debug/DRIVETONE-V11.apk
+
+V10 üzerine eklenen beş özellik:
+1. Premium tam ekran Android Media3 müzik oynatıcı: başlık, ilerleme, büyük oynatma düğmeleri ve dekoratif dalga görseli. Dalga animasyonu gerçek FFT/spektrum ölçümü değildir; albüm kapağı dosyadan çıkarımı henüz uygulanmadı.
+2. Crossfade DJ: Media3 yerel kütüphane parçaları arasında ikinci ExoPlayer ile gerçek üst üste ses geçişi (0/2/4/8 saniye). Karışık çalma ve 1× dışındaki hızda kapalıdır. Belirsiz süreli veya uyumsuz dosyalarda devre dışıdır; cihaz üzerinde test edilmelidir.
+3. Dinamik ses eşitleme: Android API 28+ DynamicsProcessing ile **isteğe bağlı dinamik sıkıştırma**. Bu, ReplayGain/LUFS analizli şarkı bazlı normalleştirme değildir; aygıt desteği değişir. Spotify/YouTube'a uygulanmaz.
+4. Sıradaki şarkılar: Media3 kuyruğunu görüntüleme, yukarı/aşağı taşıma ve çıkarma.
+5. Bluetooth cihaz profili: Android'in bildirdiği Bluetooth ses çıkışı adına göre EQ ayarlarını yerel saklama ve yeniden algılandığında yükleme. Cihaz adı her zaman eşsiz veya kesin aktif yönlendirme göstergesi değildir; FOR-X teybe DSP komutu gönderilmez.
+
+CI otomatik APK derleme, JavaScript sözdizimi ve temel dosya bağlantısı testlerini yürütür. Gerçek cihazda ses kalitesi, crossfade, işlemci yükü ve bağlantı profilinin otomatik geri çağrılması henüz doğrulanmadı. Debug APK imzası farklı bir derlemede değişebilir; güncellemeden önce verilerinizi yedekleyin.
+
+---
+
 # DRIVETONE V9
 
 V8 üzerine Android Media3 oynatma seçenekleri (shuffle, repeat ve hız) ve 28 kontrol noktasının cihaz EQ bantlarına logaritmik enterpolasyonla eşlenmesi eklendi. EQ ayarı değişikliklerinde Android ses motoruna gecikmeli aktarım eklendi. **FOR-X donanım kontrolü mevcut değil.** Önceki V8 açıklaması aşağıdadır.
