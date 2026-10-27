@@ -201,6 +201,17 @@ class MainActivity : Activity() {
             startActivity(intent)
         } catch (_: Exception) {}
     }
+    private fun getNativePlaybackSnapshot(): String {
+            val ctrl = nativeController ?: return "{\"ready\":false}"
+            return JSONObject().apply {
+                put("ready", true); put("playing", ctrl.isPlaying)
+                put("position", ctrl.currentPosition)
+                put("duration", ctrl.duration)
+                put("index", ctrl.currentMediaItemIndex)
+                put("title", ctrl.mediaMetadata.title?.toString().orEmpty())
+            }.toString()
+        }
+
     private inner class Bridge {
         @JavascriptInterface fun saveProfileJson(content: String): String {
             if (content.length > 35000 || !content.contains("\"drivetone.eq\"")) return "ERR:invalid profile"
@@ -228,16 +239,6 @@ class MainActivity : Activity() {
         @JavascriptInterface fun hapticTick() { runOnUiThread { if (::web.isInitialized) web.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) } }
         @JavascriptInterface fun getNativeLibrary(): String = nativeLibrary.json()
         @JavascriptInterface fun getNativePlayback(): String = playbackSnapshot
-    private fun getNativePlaybackSnapshot(): String {
-            val ctrl = nativeController ?: return "{\"ready\":false}"
-            return JSONObject().apply {
-                put("ready", true); put("playing", ctrl.isPlaying)
-                put("position", ctrl.currentPosition)
-                put("duration", ctrl.duration)
-                put("index", ctrl.currentMediaItemIndex)
-                put("title", ctrl.mediaMetadata.title?.toString().orEmpty())
-            }.toString()
-        }
         @JavascriptInterface fun nativePlay(index: Int) {
             runOnUiThread {
                 val ctrl = nativeController ?: return@runOnUiThread
