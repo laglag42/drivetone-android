@@ -12,6 +12,7 @@ const actions='<div class="v12-shortcuts">'+[
 ].map(([tab,a,b,img],i)=>'<button class="v12-shortcut" data-tab="'+tab+'" data-active="'+(i===0)+'" aria-label="'+a+" "+b+'">'+svg(img)+'<span>'+a+'<br>'+b+'</span></button>').join("")+'</div>';
 home.querySelector(".volume-action")?.insertAdjacentHTML("afterend",actions);
 home.querySelector(".player-card")?.setAttribute("aria-label","Şimdi çalan parça");
+const playerCard=home.querySelector(".player-card");if(playerCard){playerCard.insertAdjacentHTML("beforeend",'<button type="button" class="v12-player-open" id="v12-open-player" aria-label="Tam ekran müzik oynatıcıyı aç">⛶ Tam ekran oynatıcı</button>');$("#v12-open-player").addEventListener("click",()=>{const trigger=$("#v11-open");if(trigger)trigger.click();else I.toast("Oynatıcı şu anda kullanılamıyor")})}
 home.querySelector(".statusbar")?.setAttribute("title","Donanım bağlantısı ayrı olarak doğrulanmalıdır");
 }
 const eq=$("#eq");
@@ -23,7 +24,6 @@ const card=eq.querySelector(".eq-card");if(card)card.insertBefore(curve,card.que
 function redraw(){
 const bands=I.state?.eq;if(!Array.isArray(bands))return;
 let pts=bands.map((db,i)=>[(i/(bands.length-1))*320+10,70-db*4.3]);
-let poly=pts.map(p=>p.map(x=>Math.round(x*10)/10).join(",")).join(" ");
 let path="M "+pts.map(p=>p.join(" ")).join(" L ");
 const ns="http://www.w3.org/2000/svg";
 svgGraph.replaceChildren();
@@ -60,7 +60,8 @@ const oldGo=window.DRIVETONE?.goTo;
 function mark(tab){currentTab=tab;document.querySelectorAll(".v12-shortcut").forEach(b=>{b.dataset.active=String(b.dataset.tab===tab)});}
 document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>mark(b.dataset.tab)));
 document.querySelectorAll(".v12-shortcut").forEach(b=>b.addEventListener("click",()=>{mark(b.dataset.tab);if(typeof oldGo==="function")oldGo(b.dataset.tab)}));
-const dark=$("#darkToggle");if(dark){dark.setAttribute("aria-label","DRIVETONE koyu tema etkin");dark.disabled=true}
+const dark=$("#darkToggle");if(dark){dark.setAttribute("aria-label","DRIVETONE koyu tema etkin");dark.setAttribute("aria-checked","true");dark.disabled=true}
+const ui=$("#v8-ui");if(ui){ui.value="dark";ui.disabled=true;ui.setAttribute("aria-label","V12 sabit koyu tema")}
 const ver=$("#dt5-version");if(ver)ver.textContent="DRIVETONE V12 · BLUE COCKPIT";
-window.DTV12={redesign:true,variant:"blue-cockpit"};
+window.DTV12={redesign:true,variant:"blue-cockpit",openPlayer:()=>$("#v11-open")?.click(),goTo:tab=>I.tab(tab)};
 })();
