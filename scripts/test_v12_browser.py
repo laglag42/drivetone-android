@@ -37,27 +37,30 @@ with sync_playwright() as pw:
             assert dims["root"] <= dims["viewport"] + 2, f"Overflow {width}px / {name}: {dims}"
             assert len(errors) == 0, f"JavaScript errors at {width}px/{name}: {errors}"
         check("home")
-        page.screenshot(path=str(REPORT/f"home-{width}.png"),full_page=False)
+        page.screenshot(path=str(REPORT/f"home-{width}.png"),full_page=(width==393))
         page.locator(".v12-shortcut[data-tab=eq]").click()
         assert page.locator("#eq").evaluate("(e)=>e.classList.contains('active')")
         page.locator("#eqPresets [data-preset='Rock']").click()
         assert page.locator(".v12-eq-curve path.line").count() == 1
         check("eq")
+        if width==393: page.screenshot(path=str(REPORT/"eq-393.png"),full_page=True)
         page.locator(".nav [data-tab=cabin]").click()
         page.locator(".v12-cabin-presets [data-pos-x='-40']").click()
         assert page.locator("#balance").input_value() == "-40"
         check("cabin")
-        page.screenshot(path=str(REPORT/f"cabin-{width}.png"),full_page=False)
+        page.screenshot(path=str(REPORT/f"cabin-{width}.png"),full_page=(width==393))
         page.locator(".nav [data-tab=sources]").click()
         assert page.locator(".v12-bridge").count() == 1
         check("sources")
+        if width==393: page.screenshot(path=str(REPORT/"sources-393.png"),full_page=True)
         page.locator(".nav [data-tab=settings]").click()
         check("settings")
+        if width==393: page.screenshot(path=str(REPORT/"settings-393.png"),full_page=True)
         page.locator(".nav [data-tab=home]").click()
         page.locator("#v12-open-player").click()
         assert page.locator("#v11-modal").is_visible()
         check("full-player")
-        page.screenshot(path=str(REPORT/f"player-{width}.png"),full_page=False)
+        page.screenshot(path=str(REPORT/f"player-{width}.png"),full_page=(width==393))
         page.locator("#v11-close").click()
         assert not page.locator("#v11-modal").is_visible()
         context.close()
