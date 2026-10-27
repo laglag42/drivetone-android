@@ -261,6 +261,30 @@ class MainActivity : Activity() {
         }}
         @JavascriptInterface fun nativeRemove(index: Int) { nativeLibrary.remove(index); executeJs("window.DTV7&&window.DTV7.refreshLibrary()") }
         @JavascriptInterface fun nativeClear() { nativeLibrary.clear(); executeJs("window.DTV7&&window.DTV7.refreshLibrary()") }
+        @JavascriptInterface fun saveBackupJson(content: String): String {
+            if (content.length > 170000 || !content.contains("\"drivetone.backup\"")) return "ERR:invalid backup"
+            return try {
+                val filename = "DRIVETONE_BACKUP_" + System.currentTimeMillis() + ".json"
+                if (android.os.Build.VERSION.SDK_INT >= 29) {
+                    val values = ContentValues().apply {
+                        put(MediaStore.Downloads.DISPLAY_NAME, filename)
+                        put(MediaStore.Downloads.MIME_TYPE, "application/json")
+                        put(MediaStore.Downloads.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS + "/")
+                    }
+                    val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                        ?: return "ERR:storage unavailable"
+                    val wrote = contentResolver.openOutputStream(uri)?.use {
+                        it.write(content.toByteArray(Charsets.UTF_8)); true
+                    } ?: false
+                    if (wrote) "OK:Downloads/" + filename else "ERR:write failed"
+                } else {
+                    val folder = getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
+                        ?: return "ERR:storage unavailable"
+                    java.io.File(folder, filename).writeText(content, Charsets.UTF_8)
+                    "OK:app storage/" + filename
+                }
+            } catch (_: Exception) { "ERR:storage unavailable" }
+        }
         @JavascriptInterface fun getRoutedOutput(): String {
             val out = JSONObject()
             if (android.os.Build.VERSION.SDK_INT < 33) {
