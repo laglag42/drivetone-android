@@ -39,6 +39,7 @@ class PlaybackService : MediaSessionService() {
     private var fadeStart = 0L
     private var fadeDuration = 0L
     private var fadeIndex = -1
+    private var fadeReady = false
 
     private val attributes = AudioAttributes.Builder()
         .setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).build()
@@ -88,6 +89,7 @@ class PlaybackService : MediaSessionService() {
         val current=player?:return
         val secondary=incoming
         if(secondary!=null){
+            if (!fadeReady || secondary.playbackState != Player.STATE_READY) return
             if(outgoing!==current || !current.isPlaying && current.playbackState!=Player.STATE_ENDED){
                 cancelFade();return
             }
@@ -118,23 +120,33 @@ class PlaybackService : MediaSessionService() {
             upcoming.volume=0f
             outgoing=current
             incoming=upcoming
+            fadeReady=false
             fadeIndex=current.currentMediaItemIndex
             fadeDuration=remaining.coerceAtMost(ms).coerceAtLeast(500)
             fadeStart=android.os.SystemClock.elapsedRealtime()
+            upcoming.addListener(object:Player.Listener {
+                override fun onPlaybackStateChanged(state:Int) {
+                    if (state==Player.STATE_READY && incoming===upcoming && !fadeReady) {
+                        fadeReady=true
+                        fadeStart=android.os.SystemClock.elapsedRealtime()
+                        fadeDuration=(current.duration-current.currentPosition).coerceIn(250L,ms)
+                        upcoming.play()
+                    }
+                }
+            })
             upcoming.prepare()
-            upcoming.play()
         }catch(_:Exception){cancelFade()}
     }
     private fun finishFade(){
         val newPlayer=incoming?:return
         val old=outgoing?:return
-        incoming=null;outgoing=null;fadeIndex=-1
+        incoming=null;outgoing=null;fadeIndex=-1;fadeReady=false
         try {
             newPlayer.volume=1f
             session?.setPlayer(newPlayer)
             player=newPlayer
             attachEffects(newPlayer.audioSessionId)
-            // Allow the new player to manage audio focus after the handoff.
+            // The preloaded player now owns the foreground audio session.
             newPlayer.setAudioAttributes(attributes,true)
             old.stop();old.release()
         } catch (_:Exception){
@@ -144,7 +156,7 @@ class PlaybackService : MediaSessionService() {
     }
     private fun cancelFade(){
         val second=incoming
-        incoming=null;outgoing=null;fadeIndex=-1
+        incoming=null;outgoing=null;fadeIndex=-1;fadeReady=false
         try{second?.stop();second?.release()}catch(_:Exception){}
         player?.volume=1f
     }
