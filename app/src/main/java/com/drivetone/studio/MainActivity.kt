@@ -265,8 +265,31 @@ class MainActivity : Activity() {
         @JavascriptInterface fun nativeSeek(position: Long) { runOnUiThread {
             nativeController?.seekTo(position.coerceAtLeast(0L))
         }}
-        @JavascriptInterface fun nativeRemove(index: Int) { nativeLibrary.remove(index); executeJs("window.DTV7&&window.DTV7.refreshLibrary()") }
-        @JavascriptInterface fun nativeClear() { nativeLibrary.clear(); executeJs("window.DTV7&&window.DTV7.refreshLibrary()") }
+        @JavascriptInterface fun nativeRemove(index: Int) {
+            runOnUiThread {
+                val removedUri = nativeLibrary.all().getOrNull(index)?.uri ?: return@runOnUiThread
+                if (nativeLibrary.remove(index)) {
+                    // The playback queue may no longer match library indices.
+                    // Match by persistent URI rather than removing an arbitrary position.
+                    nativeController?.let { ctrl ->
+                        for (i in ctrl.mediaItemCount - 1 downTo 0) {
+                            if (ctrl.getMediaItemAt(i).localConfiguration?.uri == removedUri) {
+                                ctrl.removeMediaItem(i)
+                            }
+                        }
+                    }
+                    executeJs("window.DTV7&&window.DTV7.refreshLibrary()")
+                }
+            }
+        }
+        @JavascriptInterface fun nativeClear() {
+            runOnUiThread {
+                nativeController?.stop()
+                nativeController?.clearMediaItems()
+                nativeLibrary.clear()
+                executeJs("window.DTV7&&window.DTV7.refreshLibrary()")
+            }
+        }
         @JavascriptInterface fun saveBackupJson(content: String): String {
             if (content.length > 170000 || !content.contains("\"drivetone.backup\"")) return "ERR:invalid backup"
             return try {
