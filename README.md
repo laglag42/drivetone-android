@@ -1,3 +1,7 @@
+# DRIVETONE V9
+
+V8 üzerine Android Media3 oynatma seçenekleri (shuffle, repeat ve hız) ve 28 kontrol noktasının cihaz EQ bantlarına logaritmik enterpolasyonla eşlenmesi eklendi. EQ ayarı değişikliklerinde Android ses motoruna gecikmeli aktarım eklendi. **FOR-X donanım kontrolü mevcut değil.** Önceki V8 açıklaması aşağıdadır.
+
 # DRIVETONE V8 — Android Car Audio Studio
 
 Android uygulaması: GitHub Actions ile derlenen `DRIVETONE-V8.apk` kurulum dosyası GitHub Releases bölümünden indirilebilir.
