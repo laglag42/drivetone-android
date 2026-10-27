@@ -2,6 +2,7 @@ package com.drivetone.studio
 
 import android.app.Activity
 import android.content.ComponentName
+import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Color
 import android.media.AudioDeviceInfo
@@ -14,6 +15,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.provider.Settings
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
@@ -171,6 +173,29 @@ class MainActivity : Activity() {
         } catch (_: Exception) {}
     }
     private inner class Bridge {
+        @JavascriptInterface fun saveProfileJson(content: String): String {
+            if (content.length > 35000 || !content.contains("\"drivetone.eq\"")) return "ERR:invalid profile"
+            return try {
+                val filename = "DRIVETONE_EQ_" + System.currentTimeMillis() + ".json"
+                if (android.os.Build.VERSION.SDK_INT >= 29) {
+                    val values = ContentValues().apply {
+                        put(MediaStore.Downloads.DISPLAY_NAME, filename)
+                        put(MediaStore.Downloads.MIME_TYPE, "application/json")
+                        put(MediaStore.Downloads.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS + "/")
+                    }
+                    val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                        ?: return "ERR:storage unavailable"
+                    contentResolver.openOutputStream(uri)?.use { it.write(content.toByteArray(Charsets.UTF_8)) }
+                        ?: return "ERR:write failed"
+                    "OK:Downloads/" + filename
+                } else {
+                    val folder = getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS)
+                        ?: return "ERR:storage unavailable"
+                    java.io.File(folder, filename).writeText(content, Charsets.UTF_8)
+                    "OK:app storage/" + filename
+                }
+            } catch (_: Exception) { "ERR:storage unavailable" }
+        }
         @JavascriptInterface fun getMediaVolume(): Int = getVolume()
         @JavascriptInterface fun setMediaVolume(percent: Int) {
             try {
