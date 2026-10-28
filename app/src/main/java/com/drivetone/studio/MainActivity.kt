@@ -49,6 +49,7 @@ class MainActivity : Activity() {
     private val fileRequest = 5274
     private val voiceRequest = 5275
     private val microphoneRequest = 5276
+    @Volatile private var lastSharedMedia = "{}"
     private var pendingMicrophone: PermissionRequest? = null
     private val handler = Handler(Looper.getMainLooper())
     private var previousVolume = -1
@@ -149,7 +150,32 @@ class MainActivity : Activity() {
         web.addJavascriptInterface(Bridge(), "AndroidBridge")
         setContentView(web)
         web.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+        receiveExplicitMediaShare(intent)
     }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        receiveExplicitMediaShare(intent)
+    }
+
+    private fun receiveExplicitMediaShare(incoming: Intent?) {
+        if (incoming?.action != Intent.ACTION_SEND || incoming.type != "text/plain") return
+        val raw = incoming.getStringExtra(Intent.EXTRA_TEXT).orEmpty().take(4096)
+        val link = Regex("https?://[^\\s<>\\\"']+").find(raw)?.value
+            ?.trimEnd('.', ',', ')', ']', '!', '?') ?: return
+        if (link.length > 1200) return
+        val parsed = try { Uri.parse(link) } catch (_: Exception) { return }
+        if (parsed.scheme != "https") return
+        val host = parsed.host?.lowercase() ?: return
+        if (host !in setOf("open.spotify.com", "music.youtube.com", "www.youtube.com", "youtube.com", "youtu.be")) return
+        val label = if (host.contains("spotify")) "Spotify" else "YouTube"
+        // Only an explicitly shared supported music URL is accepted. No message or notification scanning.
+        lastSharedMedia = JSONObject()
+            .put("source", label).put("url", link)
+            .put("receivedAt", System.currentTimeMillis()).toString()
+        executeJs("window.DTV12&&window.DTV12.onExplicitMediaShare&&window.DTV12.onExplicitMediaShare()")
+    }
+
     override fun onRequestPermissionsResult(requestCode:Int, permissions:Array<out String>, grantResults:IntArray) {
         super.onRequestPermissionsResult(requestCode,permissions,grantResults)
         if(requestCode==microphoneRequest){
@@ -260,6 +286,12 @@ class MainActivity : Activity() {
         }
 
     private inner class Bridge {
+        @JavascriptInterface fun consumeSharedMedia(): String {
+            val value = lastSharedMedia
+            lastSharedMedia = "{}"
+            return value
+        }
+
         @JavascriptInterface fun applyNativeEQ(raw:String, enabled:Boolean):Boolean {
             return try {
                 if(raw.length>450)return false
