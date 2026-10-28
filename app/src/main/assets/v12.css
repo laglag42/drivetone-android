@@ -258,3 +258,9 @@ body.v12-design .v11-panel select{max-width:100%}
  body.v12-design #v11-modal #v11-art{width:min(52vw,185px,24dvh);min-width:110px}
  body.v12-design #v11-modal #v11-wave{flex-basis:25px;height:25px}
 }
+
+/* Public-domain overhead PNG sits horizontally in the Cabin stage; SVG remains offline fallback. */
+body.v12-design .car-shell .car-image[src*="openclipart.org"]{width:61%;height:148%;top:-24%;left:19.5%;object-fit:contain;transform:rotate(-90deg);filter:drop-shadow(0 6px 14px #000a)}
+body.v12-design .v12-share-result{padding:13px;margin:12px 0;background:#0b1929;color:#b2cbea;border:1px solid #21415f;border-radius:12px;font-size:11px;line-height:1.65;overflow-wrap:anywhere}
+body.v12-design #v12-open-shared{margin:0 0 12px;background:#1a5c9f;color:#fff}
+body.v12-design #v12-open-shared:disabled{opacity:.35;cursor:not-allowed}
