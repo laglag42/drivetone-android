@@ -38,6 +38,14 @@ let last="";setInterval(()=>{if(document.hidden)return;const x=JSON.stringify(I.
 }
 const cabin=$("#cabin");
 if(cabin){
+const car=cabin.querySelector(".car-image");
+if(car){
+ const original=car.getAttribute("src");
+ // Public-domain OpenClipart PNG; old built-in drawing stays as offline fallback.
+ car.addEventListener("error",()=>{if(car.dataset.fallback!=="1"){car.dataset.fallback="1";car.src=original}});
+ car.src="https://openclipart.org/image/2000px/338016";
+ car.alt="Üstten görünüş otomobil PNG; ses odağı noktaları temsili";
+}
 const html='<div class="v12-cabin-presets" aria-label="Sanal ses sahnesi profilleri">'+[
 ["Merkez",0,0],["Sürücü",-40,-40],["Ön",0,-65],["Arka",0,65]
 ].map(([label,x,y],i)=>'<button type="button" data-pos-x="'+x+'" data-pos-y="'+y+'" aria-pressed="'+(i===0)+'">'+label+'</button>').join("")+'</div>';
