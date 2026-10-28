@@ -20,13 +20,13 @@ document.head.insertAdjacentHTML("beforeend",'<style>#v10-collections{margin:18p
 let view="favorites",listIndex=0,lastCurrent="";
 function sync(){
  if(!native()){tracks=[];return}
- try{const d=JSON.parse(call("getNativeLibrary")||"[]");tracks=Array.isArray(d)?d.filter(t=>typeof t.uri==="string"&&typeof t.title==="string").slice(0,500):[]}catch{tracks=[]}
+ try{const d=JSON.parse(call("getNativeLibrary")||"[]");tracks=Array.isArray(d)?d.map((t,i)=>({...t,libraryIndex:i})).filter(t=>typeof t.uri==="string"&&typeof t.title==="string").slice(0,500):[]}catch{tracks=[]}
  const available=new Set(tracks.map(t=>t.uri));
  stored.favorites=stored.favorites.filter(x=>available.has(x));stored.recent=stored.recent.filter(x=>available.has(x));
  stored.lists.forEach(l=>{l.items=l.items.filter(x=>available.has(x))});
  persist();
 }
-const playingIndices=()=>{let u=view==="favorites"?stored.favorites:view==="recent"?stored.recent:view==="all"?tracks.map(t=>t.uri):stored.lists[listIndex]?.items||[];return [...new Set(u.map(uri=>tracks.findIndex(t=>t.uri===uri)).filter(i=>i>=0))].slice(0,MAX_ITEMS)};
+const playingIndices=()=>{let u=view==="favorites"?stored.favorites:view==="recent"?stored.recent:view==="all"?tracks.map(t=>t.uri):stored.lists[listIndex]?.items||[];return [...new Set(u.map(uri=>tracks.find(t=>t.uri===uri)?.libraryIndex).filter(i=>Number.isInteger(i)))].slice(0,MAX_ITEMS)};
 function draw(){
  q("#v10-tab-favorites").classList.toggle("v10-active",view==="favorites");
  q("#v10-tab-recent").classList.toggle("v10-active",view==="recent");
@@ -39,11 +39,11 @@ function draw(){
  const items=playingIndices();
  q("#v10-status").textContent=(native()?"":"Yalnızca Android APK'da çalışır · ")+tracks.length+" kayıtlı şarkı · "+items.length+" seçili";
  const box=q("#v10-items");
- const listing=view==="all"?tracks.slice(0,100).map((t,i)=>({t,i})):items.map(i=>({t:tracks[i],i}));
+ const listing=view==="all"?tracks.slice(0,100).map(t=>({t,i:t.libraryIndex})):items.map(i=>({t:tracks.find(t=>t.libraryIndex===i),i})).filter(x=>x.t);
  box.innerHTML=listing.length?listing.map(({t,i})=>'<div class="v10-track"><span title="'+esc(t.title)+'">♫ '+esc(t.title)+'</span><button data-v10-fav="'+i+'">'+(stored.favorites.includes(t.uri)?"♥":"♡")+'</button>'+(view==="list"?'<button data-v10-remove="'+i+'">Çıkar</button>':'<button data-v10-add="'+i+'">Listeye ekle</button>')+'</div>').join(""):'<p class="v10-empty">Bu görünümde henüz şarkı yok.</p>';
- box.querySelectorAll("[data-v10-fav]").forEach(b=>b.onclick=()=>{const uri=tracks[Number(b.dataset.v10Fav)]?.uri;if(!uri)return;stored.favorites=stored.favorites.includes(uri)?stored.favorites.filter(x=>x!==uri):stored.favorites.concat(uri).slice(-MAX_ITEMS);persist();draw()});
- box.querySelectorAll("[data-v10-add]").forEach(b=>b.onclick=()=>{const uri=tracks[Number(b.dataset.v10Add)]?.uri;if(!uri)return;if(!stored.lists.length){I.toast("Önce bir çalma listesi oluştur");return}const l=stored.lists[listIndex]||stored.lists[0];if(l.items.includes(uri))return;if(l.items.length>=MAX_ITEMS){I.toast("Liste en fazla 80 şarkı alır");return}l.items.push(uri);persist();I.toast(l.name+" listesine eklendi")});
- box.querySelectorAll("[data-v10-remove]").forEach(b=>b.onclick=()=>{const uri=tracks[Number(b.dataset.v10Remove)]?.uri;const l=stored.lists[listIndex];if(!l||!uri)return;l.items=l.items.filter(x=>x!==uri);persist();draw()});
+ box.querySelectorAll("[data-v10-fav]").forEach(b=>b.onclick=()=>{const uri=tracks.find(t=>t.libraryIndex===Number(b.dataset.v10Fav))?.uri;if(!uri)return;stored.favorites=stored.favorites.includes(uri)?stored.favorites.filter(x=>x!==uri):stored.favorites.concat(uri).slice(-MAX_ITEMS);persist();draw()});
+ box.querySelectorAll("[data-v10-add]").forEach(b=>b.onclick=()=>{const uri=tracks.find(t=>t.libraryIndex===Number(b.dataset.v10Add))?.uri;if(!uri)return;if(!stored.lists.length){I.toast("Önce bir çalma listesi oluştur");return}const l=stored.lists[listIndex]||stored.lists[0];if(l.items.includes(uri))return;if(l.items.length>=MAX_ITEMS){I.toast("Liste en fazla 80 şarkı alır");return}l.items.push(uri);persist();I.toast(l.name+" listesine eklendi")});
+ box.querySelectorAll("[data-v10-remove]").forEach(b=>b.onclick=()=>{const uri=tracks.find(t=>t.libraryIndex===Number(b.dataset.v10Remove))?.uri;const l=stored.lists[listIndex];if(!l||!uri)return;l.items=l.items.filter(x=>x!==uri);persist();draw()});
 }
 q("#v10-create").onclick=()=>{const name=q("#v10-new-name").value.trim().slice(0,40);if(!name)return I.toast("Listeye bir ad yaz");if(stored.lists.length>=MAX_LISTS)return I.toast("En fazla 20 liste oluşturulabilir");stored.lists.push({name,items:[]});listIndex=stored.lists.length-1;view="list";q("#v10-new-name").value="";persist();draw()};
 ["favorites","recent","all"].forEach(x=>q("#v10-tab-"+x).onclick=()=>{view=x;draw()});

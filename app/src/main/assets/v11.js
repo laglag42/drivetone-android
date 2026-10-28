@@ -19,6 +19,7 @@ $("#v11-fade").onchange=e=>{conf.fade=Number(e.target.value);effect()};
 $("#v11-normalize").onchange=e=>{conf.normalize=e.target.checked;effect()};
 $("#v11-open").onclick=()=>{$("#v11-modal").hidden=false;call("setV11Fullscreen",true);I.audio.pause();poll()};
 function closePlayer(){$("#v11-modal").hidden=true;call("setV11Fullscreen",false)}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#v11-modal").hidden)closePlayer()});
 $("#v11-close").onclick=closePlayer;
 $("#v11-play").onclick=()=>call("nativeToggle");
 $("#v11-prev").onclick=()=>call("nativePrevious");
@@ -34,7 +35,7 @@ function queueRender(){
 function move(i,d){call("nativeQueueMove",i,i+d);setTimeout(refreshQueue,200)}
 function refreshQueue(){try{const data=JSON.parse(call("nativeQueueJson")||"[]");queue=Array.isArray(data)?data.slice(0,150):[]}catch{queue=[]}queueRender()}
 $("#v11-refresh").onclick=refreshQueue;
-function device(){
+function device(autoRestore=true){
  let name="";
  try {
   const raw=JSON.parse(call("getRoutedOutput")||"{}");
@@ -43,7 +44,7 @@ function device(){
  }catch{} 
  // Require an actual named output; do not silently auto-apply on unverified names.
  $("#v11-device").textContent=name?"Algılanan Bluetooth çıkışı: "+name:"Bluetooth çıkışı bulunamadı";
- if(name&&name!==lastDevice&&conf.deviceProfiles[name]){
+ if(autoRestore&&name&&name!==lastDevice&&conf.deviceProfiles[name]){
   const values=conf.deviceProfiles[name];
   if(Array.isArray(values)&&values.length===28&&values.every(x=>Number.isFinite(x)&&x>=-12&&x<=12)){
    I.state.eq=values.slice();I.renderBands();I.renderPresets();I.applyEQ();I.persist();window.DTV8?.syncEQ();I.toast(name+" için EQ profili geri yüklendi");
@@ -52,8 +53,8 @@ function device(){
  lastDevice=name;
  return name;
 }
-$("#v11-profile-save").onclick=()=>{const name=device();if(!name)return I.toast("Bluetooth cihazı algılanmadı");conf.deviceProfiles[name]=I.state.eq.slice();persist();I.toast("Seçili çıkış için EQ kaydedildi")};
-$("#v11-profile-off").onclick=()=>{const name=device();if(!name)return;delete conf.deviceProfiles[name];persist();I.toast("Cihaz profili silindi")};
+$("#v11-profile-save").onclick=()=>{const name=device(false);if(!name)return I.toast("Bluetooth cihazı algılanmadı");conf.deviceProfiles[name]=I.state.eq.slice();persist();I.toast("Seçili çıkış için EQ kaydedildi")};
+$("#v11-profile-off").onclick=()=>{const name=device(false);if(!name)return;delete conf.deviceProfiles[name];persist();I.toast("Cihaz profili silindi")};
 let lastUri="",counter=0;
 function poll(){
  if(!android()||document.hidden)return;

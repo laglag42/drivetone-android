@@ -45,10 +45,10 @@ document.head.insertAdjacentHTML("beforeend",'<style>'+
 '</style>');
 function applyTheme(){
  document.documentElement.classList.toggle("v8-reduce-motion",q("#v8-reduce")?.checked===true);
- document.documentElement.style.colorScheme=cfg.ui==="dark"?"dark":"light";
- const dark=q("#darkToggle");if(dark){const should=cfg.ui==="dark";if(dark.checked!==should){dark.checked=should;dark.dispatchEvent(new Event("change"))}}
+ document.documentElement.style.colorScheme="dark";
+ const dark=q("#darkToggle");if(dark)dark.setAttribute("aria-checked","true");
 }
-q("#v8-ui").value=cfg.ui;q("#v8-smart-type").value=cfg.smartProfile;
+cfg.ui="dark";q("#v8-ui").value="dark";q("#v8-smart-type").value=cfg.smartProfile;
 q("#v8-reduce").checked=!!cfg.reduce;
 q("#v8-native-enable").onchange=e=>{cfg.eq=e.target.checked;safe();sendEQ()};
 q("#v8-eq-send").onclick=sendEQ;
@@ -133,7 +133,7 @@ q("#v8-diagnostics").onclick=diagnostics;q("#v8-diag-copy").onclick=()=>{
  if(navigator.clipboard?.writeText)navigator.clipboard.writeText(report).then(()=>I.toast("Rapor kopyalandı")).catch(()=>I.toast("Panoya erişilemiyor"));
  else I.toast("Panoya kopyalama bu cihazda desteklenmiyor");
 };
-q("#v8-ui").onchange=e=>{cfg.ui=e.target.value;safe();applyTheme()};
+q("#v8-ui").onchange=e=>{cfg.ui="dark";e.target.value="dark";safe();applyTheme()};
 q("#v8-reduce").onchange=e=>{cfg.reduce=e.target.checked;safe();applyTheme()};
 q("#v8-library-open").onclick=()=>I.tab("sources");
 q("#v8-library-refresh").onclick=()=>{window.DTV7?.refreshLibrary();I.toast("Müzik listesi güncellendi")};
