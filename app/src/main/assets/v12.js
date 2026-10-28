@@ -53,7 +53,34 @@ if(source){
 let p=document.createElement("section");p.className="v12-bridge";
 p.innerHTML='<div class="v12-overline">MEDIA BRIDGE</div><h2>Bring your music together.</h2><p>Spotify, YouTube Music ve yerel şarkıları aynı merkezden aç. Bildirimlere erişim bu güvenlik sürümünde kapalı; diğer uygulamaların mesajları okunmaz.</p><div class="v12-bridge-visual"><div class="v12-device v12-phone">'+svg("source")+'</div><div class="v12-device v12-radio">'+svg("profiles")+'</div></div><button type="button" id="v12-bridge-open">Müzik kütüphanemi aç</button><p class="v12-warning">FOR-X teybinin özel DSP ve kaynak değiştirme komutları henüz doğrulanmadı.</p>';
 source.insertBefore(p,source.querySelector(".source-card"));
+const bridge=p.querySelector(".v12-bridge-visual");
+if(bridge) bridge.insertAdjacentHTML("afterend", '<div class="v12-share-result" id="v12-shared-media" role="status">Başka bir müzik uygulamasından <b>Paylaş → DRIVETONE</b> seçerek bağlantıyı buraya gönderebilirsin.</div><button type="button" id="v12-open-shared" disabled>Paylaşılan müziği aç</button>');
+const sharedBtn=$("#v12-open-shared");
+let sharedUrl="";
+const allowed=(url)=>{
+ try{const u=new URL(url);return u.protocol==="https:"&&["open.spotify.com","music.youtube.com","www.youtube.com","youtube.com","youtu.be"].includes(u.hostname)}catch{return false}
+};
+function updateShare(){
+ const raw=I.callNative("getExplicitMediaShare");
+ if(!raw)return;
+ try{
+ const share=JSON.parse(raw);
+ if(!allowed(share.url))return;
+ sharedUrl=share.url;
+ const host=new URL(sharedUrl).hostname;
+ $("#v12-shared-media").textContent=(share.source||"Müzik")+" bağlantısı alındı: "+host+" · Kişisel bildirimlerin okunmadı.";
+ if(sharedBtn)sharedBtn.disabled=false;
+ I.tab("sources");
+ }catch{}
+}
+if(sharedBtn)sharedBtn.addEventListener("click",()=>{
+ if(!allowed(sharedUrl))return;
+ window.open(sharedUrl,"_blank","noopener,noreferrer");
+});
 $("#v12-bridge-open")?.addEventListener("click",()=>{$("#v7-library")?.scrollIntoView({behavior:"smooth"})});
+window.addEventListener("focus",updateShare);
+setTimeout(updateShare,650);
+window.DTV12={...(window.DTV12||{}),onExplicitMediaShare:updateShare};
 }
 let currentTab="home";
 const oldGo=window.DRIVETONE?.goTo;
@@ -63,5 +90,5 @@ document.querySelectorAll(".v12-shortcut").forEach(b=>b.addEventListener("click"
 const dark=$("#darkToggle");if(dark){dark.setAttribute("aria-label","DRIVETONE koyu tema etkin");dark.setAttribute("aria-checked","true");dark.disabled=true}
 const ui=$("#v8-ui");if(ui){ui.value="dark";ui.disabled=true;ui.setAttribute("aria-label","V12 sabit koyu tema")}
 const ver=$("#dt5-version");if(ver)ver.textContent="DRIVETONE V12 · BLUE COCKPIT";
-window.DTV12={redesign:true,variant:"blue-cockpit",openPlayer:()=>$("#v11-open")?.click(),goTo:tab=>I.tab(tab)};
+window.DTV12={...(window.DTV12||{}),redesign:true,variant:"blue-cockpit",openPlayer:()=>$("#v11-open")?.click(),goTo:tab=>I.tab(tab)};
 })();
