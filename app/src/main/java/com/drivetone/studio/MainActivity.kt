@@ -286,6 +286,8 @@ class MainActivity : Activity() {
         }
 
     private inner class Bridge {
+        @JavascriptInterface fun getExplicitMediaShare(): String = lastSharedMedia
+
         @JavascriptInterface fun consumeSharedMedia(): String {
             val value = lastSharedMedia
             lastSharedMedia = "{}"
