@@ -12,8 +12,14 @@
     </queries>
     <application android:label="DRIVETONE" android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:allowBackup="false" android:usesCleartextTraffic="false" android:icon="@drawable/ic_launcher">
-        <activity android:name=".MainActivity" android:exported="true" android:screenOrientation="portrait">
+        <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop" android:screenOrientation="portrait">
             <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+            <!-- Explicit Sharesheet import: no notification listener or permission needed. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
         </activity>
         <service android:name=".PlaybackService" android:foregroundServiceType="mediaPlayback" android:exported="true">
           <intent-filter><action android:name="androidx.media3.session.MediaSessionService"/></intent-filter>
